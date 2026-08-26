@@ -51,6 +51,20 @@ body {
   color: var(--muted);
 }
 
+.stats-card {
+  margin: 8px 0 14px;
+  padding: 10px 12px;
+  border: 2px solid #dce7ff;
+  background: #f5f9ff;
+  border-radius: 12px;
+  color: #2b3f86;
+}
+
+.stats-card span {
+  font-size: 1.15rem;
+  color: #1b50ff;
+}
+
 .letter-card {
   border: 2px dashed var(--line);
   border-radius: 16px;
@@ -103,6 +117,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
 }
 
 button {
@@ -145,6 +160,15 @@ button.accent {
 
 .slider-row input[type="range"] {
   flex: 1;
+}
+
+select {
+  border: 2px solid #d6e2ff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  color: #24386f;
+  background: #fff;
 }
 
 .message-box {
