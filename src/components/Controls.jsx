@@ -1,51 +1,63 @@
+import React from "react";
+
 export default function Controls({
-  brushSize,
-  color,
-  setColor,
-  gridType,
-  setGridType,
   onPrev,
   onNext,
   onClear,
   onEncourage,
+  onBackToGroups,
 }) {
   return (
-    <section className="controls">
-      <div className="controls-row">
-        <button onClick={onPrev}>⬅️ 上一個</button>
-        <button onClick={onNext}>下一個 ➡️</button>
-      </div>
+    <aside className="controls-left">
+      <button
+        className="ctrl-btn"
+        onClick={() => {
+          console.log("[DEBUG] Controls: Prev clicked");
+          onPrev && onPrev();
+        }}
+      >
+        ⬆️ 上一個
+      </button>
 
-      <div className="controls-row">
-        <button className="secondary" onClick={onClear}>🧽 清除重寫</button>
-        <button className="accent" onClick={onEncourage}>✅ 我寫好了</button>
-      </div>
+      <button
+        className="ctrl-btn"
+        onClick={() => {
+          console.log("[DEBUG] Controls: Next clicked");
+          onNext && onNext();
+        }}
+      >
+        ⬇️ 下一個
+      </button>
 
-      <div className="controls-row">
-        <span className="fixed-brush">目前筆粗：{brushSize}px（固定）</span>
+      <button
+        className="ctrl-btn"
+        onClick={() => {
+          console.log("[DEBUG] Controls: Clear clicked");
+          onClear && onClear();
+        }}
+      >
+        🧽 清除
+      </button>
 
-        <label htmlFor="colorSelect">筆色：</label>
-        <select
-          id="colorSelect"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-        >
-          <option value="#1f4fff">藍色</option>
-          <option value="#111111">黑色</option>
-          <option value="#e53935">紅色</option>
-        </select>
+      <button
+        className="ctrl-btn accent"
+        onClick={() => {
+          console.log("[DEBUG] Controls: Encourage clicked");
+          onEncourage && onEncourage();
+        }}
+      >
+        ✅ 我寫好了
+      </button>
 
-        <label htmlFor="gridTypeSelect">格線：</label>
-        <select
-          id="gridTypeSelect"
-          value={gridType}
-          onChange={(e) => setGridType(e.target.value)}
-        >
-          <option value="none">空白</option>
-          <option value="tian">田字格</option>
-          <option value="mi">米字格</option>
-        </select>
-      </div>
-    </section>
+      <button
+        className="ctrl-btn"
+        onClick={() => {
+          console.log("[DEBUG] Controls: Back to map clicked");
+          onBackToGroups && onBackToGroups();
+        }}
+      >
+        📚 關卡地圖
+      </button>
+    </aside>
   );
 }

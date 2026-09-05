@@ -4,53 +4,24 @@ const WritingCanvas = forwardRef(function WritingCanvas(
   { guideChar, brushSize, brushColor, gridType, clearSignal },
   ref
 ) {
-  const canvasRef = useRef(null);
   const wrapperRef = useRef(null);
+  const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  const getCtx = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return null;
-    return canvas.getContext("2d");
-  };
+  const getCtx = () => canvasRef.current?.getContext("2d") || null;
 
-  const resizeCanvas = () => {
-    const canvas = canvasRef.current;
-    const wrapper = wrapperRef.current;
-    if (!canvas || !wrapper) return;
+  const setupCanvas = (canvas, cssW, cssH, dpr) => {
+    if (!canvas) return;
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    canvas.style.width = `${Math.floor(cssW)}px`;
+    canvas.style.height = `${Math.floor(cssH)}px`;
 
-    const ratio = window.devicePixelRatio || 1;
-    const rect = wrapper.getBoundingClientRect();
-
-    const oldImage = canvas.toDataURL();
-
-    canvas.width = Math.floor(rect.width * ratio);
-    canvas.height = Math.floor((rect.width * 0.62) * ratio);
-    canvas.style.width = `${Math.floor(rect.width)}px`;
-    canvas.style.height = `${Math.floor(rect.width * 0.62)}px`;
-
-    const ctx = getCtx();
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-
-    drawBackground();
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, canvas.clientWidth, canvas.clientHeight);
-    };
-    img.src = oldImage;
-  };
-
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    const ctx = getCtx();
-    if (!canvas || !ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBackground();
   };
 
   const drawBackground = () => {
@@ -88,13 +59,40 @@ const WritingCanvas = forwardRef(function WritingCanvas(
       ctx.setLineDash([]);
     }
 
-    ctx.fillStyle = "rgba(120, 120, 120, 0.18)";
+    ctx.fillStyle = "rgba(120,120,120,0.18)";
     ctx.font = `bold ${Math.floor(h * 0.55)}px "KaiTi", "Noto Sans TC", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(guideChar, w / 2, h / 2 + 2);
 
     ctx.restore();
+  };
+
+  const clearCanvas = () => {
+    drawBackground();
+  };
+
+  const resizeCanvas = () => {
+    const wrapper = wrapperRef.current;
+    const canvas = canvasRef.current;
+    if (!wrapper || !canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = wrapper.getBoundingClientRect();
+    const cssW = Math.max(320, rect.width);
+    const cssH = Math.floor(cssW * 0.62);
+
+    const old = canvas.toDataURL();
+
+    setupCanvas(canvas, cssW, cssH, dpr);
+    drawBackground();
+
+    const ctx = getCtx();
+    const img = new Image();
+    img.onload = () => {
+      ctx?.drawImage(img, 0, 0, cssW, cssH);
+    };
+    img.src = old;
   };
 
   const getPoint = (e) => {
@@ -145,33 +143,33 @@ const WritingCanvas = forwardRef(function WritingCanvas(
     setIsDrawing(false);
   };
 
-  // 更寬鬆的描紅評估
   const evaluateTracing = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return { passed: false, score: 0, tracedRatio: 0, guideRatio: 0 };
-
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    if (w === 0 || h === 0) return { passed: false, score: 0, tracedRatio: 0, guideRatio: 0 };
-
-    // 1) 引導字遮罩（稍微放大，讓判定更寬鬆）
-    const guide = document.createElement("canvas");
-    guide.width = w;
-    guide.height = h;
-    const gctx = guide.getContext("2d");
-
-    gctx.clearRect(0, 0, w, h);
-    gctx.fillStyle = "#000";
-    gctx.font = `bold ${Math.floor(h * 0.60)}px "KaiTi", "Noto Sans TC", sans-serif`; // 放大
-    gctx.textAlign = "center";
-    gctx.textBaseline = "middle";
-    gctx.fillText(guideChar, w / 2, h / 2 + 2);
-
-    const guideData = gctx.getImageData(0, 0, w, h).data;
-
-    // 2) 使用者畫布
     const ctx = getCtx();
-    const userData = ctx.getImageData(0, 0, w, h).data;
+    if (!canvas || !ctx) return { passed: false, score: 0, tracedRatio: 0, guideRatio: 0 };
+
+    const realW = canvas.width;
+    const realH = canvas.height;
+    if (!realW || !realH) return { passed: false, score: 0, tracedRatio: 0, guideRatio: 0 };
+
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+
+    const mask = document.createElement("canvas");
+    mask.width = realW;
+    mask.height = realH;
+    const mctx = mask.getContext("2d");
+    mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    mctx.clearRect(0, 0, cssW, cssH);
+    mctx.fillStyle = "#000";
+    mctx.font = `bold ${Math.floor(cssH * 0.6)}px "KaiTi", "Noto Sans TC", sans-serif`;
+    mctx.textAlign = "center";
+    mctx.textBaseline = "middle";
+    mctx.fillText(guideChar, cssW / 2, cssH / 2 + 2);
+
+    const guideData = mctx.getImageData(0, 0, realW, realH).data;
+    const userData = ctx.getImageData(0, 0, realW, realH).data;
 
     let guidePixels = 0;
     let tracedOnGuide = 0;
@@ -179,36 +177,29 @@ const WritingCanvas = forwardRef(function WritingCanvas(
 
     for (let i = 0; i < guideData.length; i += 4) {
       const gA = guideData[i + 3];
-      const uA = userData[i + 3];
-      const uR = userData[i];
-      const uG = userData[i + 1];
-      const uB = userData[i + 2];
 
-      const isLikelyUserInk =
-        uA > 18 &&
-        !(
-          Math.abs(uR - 120) < 28 &&
-          Math.abs(uG - 120) < 28 &&
-          Math.abs(uB - 120) < 28
-        ) &&
-        !(uR > 198 && uG > 218 && uB > 242);
+      const r = userData[i];
+      const g = userData[i + 1];
+      const b = userData[i + 2];
+      const a = userData[i + 3];
+
+      const isWhiteBg = r > 245 && g > 245 && b > 245;
+      const isLightBlueGrid = r > 190 && g > 210 && b > 235;
+      const isGrayGuide = Math.abs(r - g) < 18 && Math.abs(g - b) < 18 && r > 95 && r < 170;
+
+      const isUserInk = a > 20 && !isWhiteBg && !isLightBlueGrid && !isGrayGuide;
 
       if (gA > 8) {
         guidePixels++;
-        if (isLikelyUserInk) tracedOnGuide++;
+        if (isUserInk) tracedOnGuide++;
       }
-
-      if (isLikelyUserInk) userInkPixels++;
+      if (isUserInk) userInkPixels++;
     }
 
     const tracedRatio = guidePixels > 0 ? tracedOnGuide / guidePixels : 0;
     const guideRatio = userInkPixels > 0 ? tracedOnGuide / userInkPixels : 0;
-
-    // 權重改為 60/40，讓分數更容易上去
     const score = Math.round((tracedRatio * 0.6 + guideRatio * 0.4) * 100);
-
-    // ✅ 更寬鬆門檻
-    const passed = tracedRatio >= 0.12 && score >= 24;
+    const passed = score >= 41;
 
     return { passed, score, tracedRatio, guideRatio };
   };
@@ -223,17 +214,14 @@ const WritingCanvas = forwardRef(function WritingCanvas(
     const onResize = () => resizeCanvas();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     clearCanvas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guideChar, gridType]);
 
   useEffect(() => {
     clearCanvas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearSignal]);
 
   return (

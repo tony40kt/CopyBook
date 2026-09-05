@@ -1,8 +1,9 @@
-export default function LetterCard({ char, hint, index, total }) {
+export default function LetterCard({ char, hint, index, total, title }) {
   return (
     <section className="letter-card">
       <div className="letter-meta">
-        <span>第 {index + 1} / {total} 個字</span>
+        <span>{title}</span>
+        <span>第 {index + 1} / {total} 關</span>
       </div>
 
       <div className="letter-preview" aria-label={`練習字 ${char}`}>

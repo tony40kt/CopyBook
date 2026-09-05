@@ -1,0 +1,6 @@
+{
+  "appId": "com.tony40kt.copybook",
+  "appName": "CopyBook",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

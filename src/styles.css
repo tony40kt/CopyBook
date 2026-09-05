@@ -1,5 +1,4 @@
 :root {
-  --bg: #f4f8ff;
   --card: #ffffff;
   --text: #1f2a44;
   --muted: #637099;
@@ -27,13 +26,17 @@ body {
   padding: 18px;
 }
 
+/* ========== CRITICAL: make .app positioned so absolute children reference it ========== */
 .app {
-  width: min(920px, 100%);
+  width: min(960px, 100%);
   background: var(--card);
   border: 2px solid #e7edff;
   border-radius: 20px;
   padding: 18px;
   box-shadow: 0 12px 30px rgba(79, 112, 201, 0.12);
+
+  position: relative; /* <- ADDED: ensures .controls-left absolute positioning is relative to .app */
+  z-index: 1;
 }
 
 .app-header {
@@ -49,6 +52,72 @@ body {
 .app-header p {
   margin: 0;
   color: var(--muted);
+}
+
+.selector-card {
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  background: #f8fbff;
+}
+
+.selector-card h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.selector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.selector-btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 18px 14px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+.group-list {
+  display: grid;
+  gap: 10px;
+}
+
+.group-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border: 2px solid #dbe6ff;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  color: #20305f;
+  cursor: pointer;
+}
+
+.group-item strong {
+  font-size: 1rem;
+}
+
+.group-item span {
+  color: #4e5c88;
+  font-size: 0.92rem;
+}
+
+.group-item em {
+  color: #1f4fff;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.selector-actions {
+  margin-top: 12px;
 }
 
 .stats-card {
@@ -76,6 +145,10 @@ body {
 .letter-meta {
   color: var(--muted);
   font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .letter-preview {
@@ -129,15 +202,10 @@ button {
   background: var(--primary);
   color: #fff;
   cursor: pointer;
-  transition: transform 0.05s ease, background 0.2s ease;
 }
 
 button:hover {
   background: var(--primary-dark);
-}
-
-button:active {
-  transform: translateY(1px);
 }
 
 button.secondary {
@@ -148,18 +216,12 @@ button.accent {
   background: var(--accent);
 }
 
-.slider-row {
-  align-items: center;
-}
-
-.slider-row label {
-  min-width: 110px;
+.fixed-tag {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f2f6ff;
+  color: #2f427d;
   font-weight: 700;
-  color: #44527c;
-}
-
-.slider-row input[type="range"] {
-  flex: 1;
 }
 
 select {
@@ -181,7 +243,11 @@ select {
   text-align: center;
 }
 
-@media (max-width: 680px) {
+@media (max-width: 720px) {
+  .selector-grid {
+    grid-template-columns: 1fr;
+  }
+
   .app {
     padding: 14px;
     border-radius: 14px;
@@ -191,16 +257,304 @@ select {
     width: 100%;
   }
 
-  .slider-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .slider-row label {
-    min-width: auto;
-  }
-
   .app-header h1 {
     font-size: 1.55rem;
   }
 }
+.map-subtitle {
+  margin: 0 0 10px;
+  color: #4e5c88;
+  font-weight: 700;
+}
+
+.level-map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.level-node {
+  position: relative;
+  border: 2px solid #dbe6ff;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #20305f;
+  padding: 10px 8px;
+  min-height: 92px;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  align-content: center;
+  cursor: pointer;
+}
+
+.level-node.active {
+  border-color: #5b84ff;
+  box-shadow: 0 0 0 3px rgba(91, 132, 255, 0.15);
+}
+
+.level-node.locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #f5f7ff;
+}
+
+.node-index {
+  font-size: 0.82rem;
+  color: #6d7aa6;
+  font-weight: 700;
+}
+
+.node-char {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.node-stars {
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: #f2a900;
+}
+
+.node-lock {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  font-size: 0.9rem;
+}
+
+.map-legend {
+  margin-top: 10px;
+  color: #4e5c88;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+/* ===== Locked Group (clear visual) ===== */
+.group-item.locked {
+  position: relative;
+  opacity: 1; /* 不用整體變淡，改用更明確樣式 */
+  border: 2px dashed #b9c6ee !important;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      #f3f6ff,
+      #f3f6ff 8px,
+      #e9efff 8px,
+      #e9efff 16px
+    );
+  color: #6a78a8 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(15%);
+}
+
+.group-item.locked strong,
+.group-item.locked span,
+.group-item.locked em,
+.group-item.locked small {
+  color: #6a78a8 !important;
+}
+
+.group-item.locked::after {
+  content: "🔒 未解鎖";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fff;
+  background: #6b7ec2;
+  border-radius: 999px;
+  padding: 4px 8px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(33, 56, 126, 0.25);
+}
+
+/* 鎖定原因文字更醒目 */
+.group-item.locked small {
+  margin-top: 4px;
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #dde6ff;
+  font-weight: 700;
+}
+
+/* hover 時避免像可點擊 */
+.group-item.locked:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== 鎖定群組進度條 ===== */
+.unlock-progress-wrap {
+  margin-top: 8px;
+  width: 100%;
+  display: grid;
+  gap: 8px;
+}
+
+.unlock-progress-item {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #c9d6ff;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.unlock-progress-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #4a5b96;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.unlock-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e4ebff;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.unlock-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7aa2ff, #4f79ff);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.settings-block {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #dbe5ff;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.settings-block h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: #30457f;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 44px);
+  gap: 10px;
+}
+
+.color-dot {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 3px solid #d4def7;
+  cursor: pointer;
+}
+
+.color-dot.active {
+  border-color: #1f4fff;
+  box-shadow: 0 0 0 3px rgba(31, 79, 255, 0.2);
+}
+
+.danger-zone {
+  border-color: #ffd8d8;
+  background: #fff7f7;
+}
+
+/* ===== LEFT controls column (scoped to .app to avoid conflicts) ===== */
+.app .controls-left {
+  position: absolute; /* sits inside .app */
+  left: 12px;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 88px;
+  z-index: 30;
+}
+
+.ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 6px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+}
+
+/* Accent / secondary */
+.ctrl-btn.accent { background: #1a73e8; color: white; border: none; }
+.ctrl-btn.secondary { background: #f1f3f4; }
+
+/* Ensure main content never hidden (one-screen fit) */
+.practice-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: calc(100vh - 0px); /* fill viewport */
+  padding-left: 112px; /* leave space for left controls */
+  box-sizing: border-box;
+}
+
+/* main area contains LetterCard + Canvas */
+.practice-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+/* ensure letter card and canvas fit in one viewport */
+.letter-card, .writing-canvas-wrapper {
+  flex-shrink: 0;
+}
+
+/* Canvas wrapper to allow responsive scaling */
+.writing-canvas-wrapper {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+/* ========== Modal (bring to front) ========== */
+/* backdrop */
+.stars-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 2147483646; /* VERY HIGH to avoid being covered */
+  pointer-events: auto;
+}
+
+/* modal box */
+.stars-modal {
+  z-index: 2147483647;
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  width: 320px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.stars-display {
+  font-size: 26px;
+  margin: 12px 0;
+}
+.modal-actions { display:flex; gap:10px; justify-content:center; margin-top:8px; }
+.modal-actions button { min-width:120px; }
