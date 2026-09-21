@@ -84,6 +84,12 @@ export default function App() {
 
   const getLevelProgressKey = (level, mode = getLevelMode(level)) =>
     level ? `${level.id}::${mode}` : "";
+  const getLevelBestStars = (level) =>
+    Math.max(
+      ...((level?.supportedModes || [level?.mode || "writing"]).map(
+        (mode) => starsByLevel[getLevelProgressKey(level, mode)] ?? 0
+      ))
+    );
 
   const currentMode = getLevelMode(current);
   const groupTitle = currentGroup?.title || "";
@@ -110,9 +116,7 @@ export default function App() {
     const total = group?.items?.length ?? 0;
     if (!total) return { done: 0, total: 0, percent: 0 };
 
-    const done = group.items.filter(
-      (level) => (starsByLevel[getLevelProgressKey(level)] ?? 0) >= 1
-    ).length;
+    const done = group.items.filter((level) => getLevelBestStars(level) >= 1).length;
     return {
       done,
       total,
@@ -145,9 +149,7 @@ export default function App() {
       return (group.unlock.groups || []).every((gid) => {
         const requiredGroup = getGroupById(gid);
         return requiredGroup
-          ? requiredGroup.items.every(
-              (level) => (starsByLevel[getLevelProgressKey(level)] ?? 0) >= 1
-            )
+          ? requiredGroup.items.every((level) => getLevelBestStars(level) >= 1)
           : false;
       });
     }
@@ -217,7 +219,7 @@ export default function App() {
   const isLevelUnlocked = (index) => {
     if (index === 0) return true;
     const previousLevel = items[index - 1];
-    return (starsByLevel[getLevelProgressKey(previousLevel)] ?? 0) >= 1;
+    return getLevelBestStars(previousLevel) >= 1;
   };
 
   const goPrev = () => {

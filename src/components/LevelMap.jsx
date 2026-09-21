@@ -21,10 +21,10 @@ export default function LevelMap({
   const isUnlocked = (idx) => {
     if (idx === 0) return true;
     const prev = items[idx - 1];
-    const prevMode = prev.supportedModes?.includes(defaultPracticeMode)
-      ? defaultPracticeMode
-      : prev.mode;
-    const prevStars = starsByLevel?.[`${prev.id}::${prevMode}`] ?? 0;
+    const prevModes = prev.supportedModes || [prev.mode];
+    const prevStars = Math.max(
+      ...prevModes.map((mode) => starsByLevel?.[`${prev.id}::${mode}`] ?? 0)
+    );
     return prevStars >= 1;
   };
 

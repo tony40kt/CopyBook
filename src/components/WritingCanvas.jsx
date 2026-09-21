@@ -315,7 +315,7 @@ const WritingCanvas = forwardRef(function WritingCanvas(
     activeStrokeRef.current = null;
     redraw();
     setStrokeVersion((value) => value + 1);
-  }, [clearSignal, effectiveItem?.id, practiceMode, gridType, redraw]);
+  }, [clearSignal, effectiveItem?.id, practiceMode, redraw]);
 
   return (
     <div className="canvas-wrapper" ref={wrapperRef}>

@@ -1,15 +1,9 @@
-import { useEffect } from "react";
-
 function formatPercent(value) {
   if (typeof value !== "number") return null;
   return `${Math.round(value * 100)}%`;
 }
 
 export default function StarsModal({ open, stars, result, onRetry, onNext, onClose }) {
-  useEffect(() => {
-    if (open) console.log("[DEBUG] StarsModal opened with stars=", stars);
-  }, [open, stars]);
-
   if (!open) return null;
   return (
     <div className="stars-modal-backdrop" onClick={onClose}>
