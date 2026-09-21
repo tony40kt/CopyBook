@@ -54,7 +54,7 @@ export default function LevelMap({
 
       <div className="selector-actions">
         <button className="secondary" onClick={onBackToGroups}>
-          ⬅️ 返回課程分類
+          ⬅️ 返回
         </button>
       </div>
     </section>

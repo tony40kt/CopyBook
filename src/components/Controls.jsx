@@ -56,7 +56,7 @@ export default function Controls({
           onBackToGroups && onBackToGroups();
         }}
       >
-        📚 關卡地圖
+        📚 返回
       </button>
     </aside>
   );

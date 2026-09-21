@@ -57,7 +57,7 @@ export default function GroupSelector({
       </div>
 
       <div className="selector-actions">
-        <button className="secondary" onClick={onBack}>⬅️ 返回語言選單</button>
+        <button className="secondary" onClick={onBack}>⬅️ 主目錄</button>
       </div>
     </section>
   );
