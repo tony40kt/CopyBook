@@ -1,6 +1,5 @@
-import React from "react";
-
 export default function Controls({
+  practiceMode,
   onPrev,
   onNext,
   onClear,
@@ -46,7 +45,7 @@ export default function Controls({
           onEncourage && onEncourage();
         }}
       >
-        ✅ 我寫好了
+        {practiceMode === "doodle" ? "🎨 我完成了" : "✅ 我寫好了"}
       </button>
 
       <button

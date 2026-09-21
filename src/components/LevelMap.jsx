@@ -2,6 +2,10 @@ function starsText(n = 0) {
   return "⭐".repeat(n) + "☆".repeat(3 - n);
 }
 
+function truncateText(text = "") {
+  return text.length > 6 ? `${text.slice(0, 6)}…` : text;
+}
+
 export default function LevelMap({
   groupTitle,
   items,
@@ -37,10 +41,11 @@ export default function LevelMap({
               className={`level-node ${active ? "active" : ""} ${!unlocked ? "locked" : ""}`}
               onClick={() => unlocked && onSelectLevel(idx)}
               disabled={!unlocked}
-              title={unlocked ? `${lv.char} - ${starsText(stars)}` : "先完成前一關拿至少1星"}
+              title={unlocked ? `${lv.text} - ${starsText(stars)}` : "先完成前一關拿至少1星"}
             >
               <span className="node-index">{idx + 1}</span>
-              <span className="node-char">{lv.char}</span>
+              <span className="node-char">{truncateText(lv.text)}</span>
+              <span className="node-mode">{lv.mode === "doodle" ? "塗鴉" : "寫字"}</span>
               <span className="node-stars">{starsText(stars)}</span>
               {!unlocked && <span className="node-lock">🔒</span>}
             </button>

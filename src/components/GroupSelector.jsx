@@ -29,6 +29,7 @@ export default function GroupSelector({
                 {g.title} {!unlocked && "🔒"}
               </strong>
               <span>{g.description}</span>
+              <em>建議模式：{g.recommendedMode === "doodle" ? "塗鴉" : "寫字"}</em>
               <em>共 {g.items.length} 關</em>
 
               {!unlocked && <small>{lockReason}</small>}
