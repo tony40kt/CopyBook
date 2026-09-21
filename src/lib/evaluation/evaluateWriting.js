@@ -130,7 +130,7 @@ export function evaluateWriting({
 
   drawGuideText(guideCtx, layout, { fillStyle: "#000000", alpha: 1 });
   renderStrokes(userCtx, strokes, 0);
-  renderStrokes(userExpandedCtx, strokes, profile.toleranceRadius / 2);
+  renderStrokes(userExpandedCtx, strokes, profile.toleranceRadius * 2);
 
   const expandedGuideCanvas = dilateCanvas(guideCanvas, Math.round(profile.toleranceRadius * dpr));
 

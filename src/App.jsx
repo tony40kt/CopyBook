@@ -8,7 +8,7 @@ import WritingCanvas from "./components/WritingCanvas";
 import Controls from "./components/Controls";
 import SettingsPanel from "./components/SettingsPanel";
 import StarsModal from "./components/StarsModal";
-import { scoreToStars } from "./lib/evaluation/profiles";
+import { getToleranceOption, scoreToStars } from "./lib/evaluation/profiles";
 import "./styles.css";
 
 const STORAGE_KEY = "copybook_v43_progress";
@@ -93,6 +93,7 @@ export default function App() {
 
   const currentMode = getLevelMode(current);
   const groupTitle = currentGroup?.title || "";
+  const toleranceLabel = getToleranceOption(toleranceLevel).label;
 
   useEffect(() => {
     localStorage.setItem(
@@ -273,7 +274,7 @@ export default function App() {
 
       const stars = scoreToStars(result.score, result.starThresholds);
       const progressKey = getLevelProgressKey(current, currentMode);
-      const previousBestStars = starsByLevel[progressKey] ?? 0;
+      const previousBestStars = getLevelBestStars(current);
 
       setLastStars(stars);
       setModalStars(stars);
@@ -331,16 +332,16 @@ export default function App() {
   const unlockAllLevels = () => {
     if (!window.confirm("確定要解鎖所有關卡嗎？")) return;
 
-    const allLevelIds = Object.values(curriculum)
+    const allLevels = Object.values(curriculum)
       .flatMap((language) => language.groups)
-      .flatMap((group) => group.items)
-      .map((level) => level.id);
+      .flatMap((group) => group.items);
 
     setStarsByLevel((previous) => {
       const next = { ...previous };
-      allLevelIds.forEach((id) => {
-        next[`${id}::writing`] = Math.max(next[`${id}::writing`] ?? 0, 1);
-        next[`${id}::doodle`] = Math.max(next[`${id}::doodle`] ?? 0, 1);
+      allLevels.forEach((level) => {
+        (level.supportedModes || [level.mode || "writing"]).forEach((mode) => {
+          next[`${level.id}::${mode}`] = Math.max(next[`${level.id}::${mode}`] ?? 0, 1);
+        });
       });
       return next;
     });
@@ -472,7 +473,7 @@ export default function App() {
         {" ｜ "}
         模式：<strong>{currentMode === "doodle" ? "塗鴉" : "寫字"}</strong>
         {" ｜ "}
-        寬容度：<strong>{toleranceLevel}</strong>
+        寬容度：<strong>{toleranceLabel}</strong>
       </section>
 
       <div className="message-box">{message}</div>
@@ -497,7 +498,7 @@ export default function App() {
             unit={current.unit}
             language={current.language}
             practiceMode={currentMode}
-            toleranceLevel={toleranceLevel}
+            toleranceLabel={toleranceLabel}
           />
 
           <div className="writing-canvas-wrapper">

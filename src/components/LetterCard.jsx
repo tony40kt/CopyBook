@@ -17,7 +17,7 @@ export default function LetterCard({
   unit,
   language,
   practiceMode,
-  toleranceLevel,
+  toleranceLabel,
 }) {
   return (
     <section className="letter-card">
@@ -30,7 +30,7 @@ export default function LetterCard({
         <span className="fixed-tag">{LANGUAGE_LABELS[language] || language}</span>
         <span className="fixed-tag">{UNIT_LABELS[unit] || unit}</span>
         <span className="fixed-tag">{practiceMode === "doodle" ? "塗鴉模式" : "寫字模式"}</span>
-        <span className="fixed-tag">寬容度：{toleranceLevel}</span>
+        <span className="fixed-tag">寬容度：{toleranceLabel}</span>
       </div>
 
       <div className="letter-preview" aria-label={`練習內容 ${text}`}>
