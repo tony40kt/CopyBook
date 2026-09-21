@@ -8,7 +8,7 @@ function createCanvas(realWidth, realHeight) {
   return canvas;
 }
 
-function renderStrokes(ctx, strokes, lineWidthOffset = 0) {
+function renderStrokes(ctx, strokes, { lineWidthOffset = 0, scale = 1 } = {}) {
   strokes.forEach((stroke) => {
     const points = stroke.points || [];
     if (!points.length) return;
@@ -18,21 +18,21 @@ function renderStrokes(ctx, strokes, lineWidthOffset = 0) {
     ctx.fillStyle = "#000000";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.lineWidth = Math.max(1, (stroke.brushSize || 1) + lineWidthOffset);
+    ctx.lineWidth = Math.max(1, ((stroke.brushSize || 1) + lineWidthOffset) * scale);
 
     if (points.length === 1) {
       const point = points[0];
       ctx.beginPath();
-      ctx.arc(point.x, point.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+      ctx.arc(point.x * scale, point.y * scale, ctx.lineWidth / 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
       return;
     }
 
     ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
+    ctx.moveTo(points[0].x * scale, points[0].y * scale);
     for (let index = 1; index < points.length; index += 1) {
-      ctx.lineTo(points[index].x, points[index].y);
+      ctx.lineTo(points[index].x * scale, points[index].y * scale);
     }
     ctx.stroke();
     ctx.restore();
@@ -114,10 +114,12 @@ export function evaluateWriting({
     };
   }
 
-  [guideCtx, userCtx, userExpandedCtx].forEach((ctx) => {
+  [guideCtx, userCtx].forEach((ctx) => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
   });
+  userExpandedCtx.setTransform(1, 0, 0, 1, 0, 0);
+  userExpandedCtx.clearRect(0, 0, realWidth, realHeight);
 
   const layout = buildGuideLayout({
     ctx: guideCtx,
@@ -129,8 +131,11 @@ export function evaluateWriting({
   });
 
   drawGuideText(guideCtx, layout, { fillStyle: "#000000", alpha: 1 });
-  renderStrokes(userCtx, strokes, 0);
-  renderStrokes(userExpandedCtx, strokes, profile.toleranceRadius * 2);
+  renderStrokes(userCtx, strokes);
+  renderStrokes(userExpandedCtx, strokes, {
+    lineWidthOffset: profile.toleranceRadius * 2,
+    scale: dpr,
+  });
 
   const expandedGuideCanvas = dilateCanvas(guideCanvas, Math.round(profile.toleranceRadius * dpr));
 

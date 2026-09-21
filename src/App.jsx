@@ -216,7 +216,7 @@ export default function App() {
     }
 
     setCurrentIndex(index);
-    setLastStars(starsByLevel[getLevelProgressKey(items[index])] ?? 0);
+    setLastStars(getLevelBestStars(items[index]));
     setView("practice");
     setMessage("沿著提示開始練習，完成後按下「我完成了」。");
     setClearSignal((signal) => signal + 1);
@@ -237,7 +237,7 @@ export default function App() {
     }
 
     setCurrentIndex(nextIndex);
-    setLastStars(starsByLevel[getLevelProgressKey(items[nextIndex])] ?? 0);
+    setLastStars(getLevelBestStars(items[nextIndex]));
     setClearSignal((signal) => signal + 1);
   };
 
@@ -250,7 +250,7 @@ export default function App() {
     }
 
     setCurrentIndex(nextIndex);
-    setLastStars(starsByLevel[getLevelProgressKey(items[nextIndex])] ?? 0);
+    setLastStars(getLevelBestStars(items[nextIndex]));
     setClearSignal((signal) => signal + 1);
   };
 
@@ -325,6 +325,8 @@ export default function App() {
     setStarsByLevel({});
     setCompletedCount(0);
     setLastStars(0);
+    setLastResult(null);
+    setScoreModalOpen(false);
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(LEGACY_STORAGE_KEY);
   };
