@@ -2,11 +2,16 @@ function starsText(n = 0) {
   return "⭐".repeat(n) + "☆".repeat(3 - n);
 }
 
+function truncateText(text = "") {
+  return text.length > 6 ? `${text.slice(0, 6)}…` : text;
+}
+
 export default function LevelMap({
   groupTitle,
   items,
   currentIndex,
   starsByLevel,
+  defaultPracticeMode,
   onSelectLevel,
   onBackToGroups,
 }) {
@@ -16,7 +21,10 @@ export default function LevelMap({
   const isUnlocked = (idx) => {
     if (idx === 0) return true;
     const prev = items[idx - 1];
-    const prevStars = starsByLevel?.[prev.id] ?? 0;
+    const prevModes = prev.supportedModes || [prev.mode];
+    const prevStars = Math.max(
+      ...prevModes.map((mode) => starsByLevel?.[`${prev.id}::${mode}`] ?? 0)
+    );
     return prevStars >= 1;
   };
 
@@ -28,7 +36,14 @@ export default function LevelMap({
       <div className="level-map-grid">
         {items.map((lv, idx) => {
           const unlocked = isUnlocked(idx);
-          const stars = starsByLevel?.[lv.id] ?? 0;
+          const effectiveMode = lv.supportedModes?.includes(defaultPracticeMode)
+            ? defaultPracticeMode
+            : lv.mode;
+          const stars = Math.max(
+            ...((lv.supportedModes || [effectiveMode]).map(
+              (mode) => starsByLevel?.[`${lv.id}::${mode}`] ?? 0
+            ))
+          );
           const active = idx === currentIndex;
 
           return (
@@ -37,10 +52,11 @@ export default function LevelMap({
               className={`level-node ${active ? "active" : ""} ${!unlocked ? "locked" : ""}`}
               onClick={() => unlocked && onSelectLevel(idx)}
               disabled={!unlocked}
-              title={unlocked ? `${lv.char} - ${starsText(stars)}` : "先完成前一關拿至少1星"}
+              title={unlocked ? `${lv.text} - ${starsText(stars)}` : "先完成前一關拿至少1星"}
             >
               <span className="node-index">{idx + 1}</span>
-              <span className="node-char">{lv.char}</span>
+              <span className="node-char">{truncateText(lv.text)}</span>
+              <span className="node-mode">{effectiveMode === "doodle" ? "塗鴉" : "寫字"}</span>
               <span className="node-stars">{starsText(stars)}</span>
               {!unlocked && <span className="node-lock">🔒</span>}
             </button>

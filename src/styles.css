@@ -392,9 +392,19 @@ button.accent:hover {
 
 .node-char {
   color: #344fbc;
-  font-size: 1.6rem;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 1.25rem;
   font-weight: 900;
   line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-mode {
+  color: #6074b5;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .node-stars {
@@ -545,6 +555,13 @@ button.accent:hover {
   font-weight: 700;
 }
 
+.letter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .letter-preview {
   margin-top: 8px;
   color: #405ed8;
@@ -552,6 +569,7 @@ button.accent:hover {
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 4px 0 rgba(79, 107, 255, 0.1);
+  word-break: break-word;
 }
 
 .letter-hint {
@@ -642,6 +660,13 @@ select {
   font-weight: 900;
 }
 
+.settings-note {
+  margin: 10px 0 0;
+  color: #6074b5;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .color-grid {
   display: grid;
   grid-template-columns: repeat(4, 46px);
@@ -727,6 +752,23 @@ select {
   text-shadow: 0 3px 0 #d88b00;
 }
 
+.score-breakdown {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #f7f9ff;
+  color: #43547f;
+  text-align: left;
+}
+
+.score-breakdown p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
 .modal-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -791,4 +833,3 @@ select {
     grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   }
 }
-

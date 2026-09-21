@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { curriculum } from "./data/curriculum";
 import LanguageSelector from "./components/LanguageSelector";
 import GroupSelector from "./components/GroupSelector";
@@ -8,12 +8,40 @@ import WritingCanvas from "./components/WritingCanvas";
 import Controls from "./components/Controls";
 import SettingsPanel from "./components/SettingsPanel";
 import StarsModal from "./components/StarsModal";
+import { getToleranceOption, scoreToStars } from "./lib/evaluation/profiles";
 import "./styles.css";
 
-const STORAGE_KEY = "copybook_v42_progress";
+const STORAGE_KEY = "copybook_v43_progress";
+const LEGACY_STORAGE_KEY = "copybook_v42_progress";
+const SETTINGS_VERSION = 2;
+const BRUSH_SIZE = 15;
+
+function loadSavedProgress() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (error) {
+    console.warn("讀取本機進度失敗：", error);
+    return {};
+  }
+}
+
+function normalizeStoredStars(storedStars = {}) {
+  return Object.fromEntries(
+    Object.entries(storedStars).map(([key, value]) => [
+      key.includes("::") ? key : `${key}::writing`,
+      value,
+    ])
+  );
+}
 
 export default function App() {
   const canvasApiRef = useRef(null);
+  const savedProgress = loadSavedProgress();
 
   const [view, setView] = useState("language");
   const [prevView, setPrevView] = useState("language");
@@ -22,18 +50,26 @@ export default function App() {
   const [groupId, setGroupId] = useState(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const brushSize = 15;
-  const [brushColor, setBrushColor] = useState("#111111");
-  const [gridType, setGridType] = useState("tian");
+  const [brushColor, setBrushColor] = useState(savedProgress.brushColor || "#111111");
+  const [gridType, setGridType] = useState(savedProgress.gridType || "tian");
+  const [defaultPracticeMode, setDefaultPracticeMode] = useState(
+    savedProgress.defaultPracticeMode || "writing"
+  );
+  const [toleranceLevel, setToleranceLevel] = useState(
+    savedProgress.toleranceLevel || "standard"
+  );
   const [clearSignal, setClearSignal] = useState(0);
 
   const [scoreModalOpen, setScoreModalOpen] = useState(false);
   const [modalStars, setModalStars] = useState(0);
+  const [lastResult, setLastResult] = useState(null);
 
-  const [message, setMessage] = useState("準備好了就開始寫字吧！");
-  const [completedCount, setCompletedCount] = useState(0);
+  const [message, setMessage] = useState("準備好了就開始練習吧！");
+  const [completedCount, setCompletedCount] = useState(savedProgress.completedCount || 0);
   const [lastStars, setLastStars] = useState(0);
-  const [starsByLevel, setStarsByLevel] = useState({});
+  const [starsByLevel, setStarsByLevel] = useState(
+    normalizeStoredStars(savedProgress.starsByLevel || {})
+  );
 
   const lang = languageKey ? curriculum[languageKey] : null;
   const groups = lang?.groups || [];
@@ -41,65 +77,47 @@ export default function App() {
   const items = currentGroup?.items || [];
   const current = items[currentIndex] || null;
 
-  const groupTitle = useMemo(() => currentGroup?.title || "", [currentGroup]);
+  const getLevelMode = (level) =>
+    !level || level.supportedModes?.includes(defaultPracticeMode)
+      ? defaultPracticeMode
+      : level.mode;
 
-  useEffect(() => {
-    console.log("[DEBUG] scoreModalOpen =", scoreModalOpen, "modalStars =", modalStars);
-  }, [scoreModalOpen, modalStars]);
+  const getLevelProgressKey = (level, mode = getLevelMode(level)) =>
+    level ? `${level.id}::${mode}` : "";
+  const getLevelBestStars = (level) =>
+    Math.max(
+      ...((level?.supportedModes || [level?.mode || "writing"]).map(
+        (mode) => starsByLevel[getLevelProgressKey(level, mode)] ?? 0
+      ))
+    );
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-
-      const saved = JSON.parse(raw);
-
-      if (saved?.starsByLevel && typeof saved.starsByLevel === "object") {
-        setStarsByLevel(saved.starsByLevel);
-      }
-
-      if (typeof saved?.completedCount === "number") {
-        setCompletedCount(saved.completedCount);
-      }
-
-      if (typeof saved?.brushColor === "string") {
-        setBrushColor(saved.brushColor);
-      }
-
-      if (typeof saved?.gridType === "string") {
-        setGridType(saved.gridType);
-      }
-    } catch (error) {
-      console.warn("讀取本機進度失敗：", error);
-    }
-  }, []);
+  const currentMode = getLevelMode(current);
+  const groupTitle = currentGroup?.title || "";
+  const toleranceLabel = getToleranceOption(toleranceLevel).label;
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
+        settingsVersion: SETTINGS_VERSION,
         starsByLevel,
         completedCount,
         brushColor,
         gridType,
+        defaultPracticeMode,
+        toleranceLevel,
         savedAt: new Date().toISOString(),
       })
     );
-  }, [starsByLevel, completedCount, brushColor, gridType]);
+  }, [starsByLevel, completedCount, brushColor, gridType, defaultPracticeMode, toleranceLevel]);
 
   const getGroupById = (gid) => groups.find((group) => group.id === gid);
 
   const getGroupProgress = (group) => {
     const total = group?.items?.length ?? 0;
+    if (!total) return { done: 0, total: 0, percent: 0 };
 
-    if (!total) {
-      return { done: 0, total: 0, percent: 0 };
-    }
-
-    const done = group.items.filter(
-      (level) => (starsByLevel[level.id] ?? 0) >= 1
-    ).length;
-
+    const done = group.items.filter((level) => getLevelBestStars(level) >= 1).length;
     return {
       done,
       total,
@@ -115,9 +133,7 @@ export default function App() {
     return (group.unlock.groups || [])
       .map((gid) => {
         const requiredGroup = getGroupById(gid);
-
         if (!requiredGroup) return null;
-
         return {
           id: requiredGroup.id,
           title: requiredGroup.title,
@@ -128,18 +144,13 @@ export default function App() {
   };
 
   const isGroupUnlocked = (group) => {
-    if (!group?.unlock || group.unlock.type === "none") {
-      return true;
-    }
+    if (!group?.unlock || group.unlock.type === "none") return true;
 
     if (group.unlock.type === "requireGroupsAllOneStar") {
       return (group.unlock.groups || []).every((gid) => {
         const requiredGroup = getGroupById(gid);
-
         return requiredGroup
-          ? requiredGroup.items.every(
-              (level) => (starsByLevel[level.id] ?? 0) >= 1
-            )
+          ? requiredGroup.items.every((level) => getLevelBestStars(level) >= 1)
           : false;
       });
     }
@@ -147,13 +158,7 @@ export default function App() {
     return true;
   };
 
-  const getGroupLockReason = (group) => {
-    if (!group?.unlock || group.unlock.type === "none") {
-      return "";
-    }
-
-    return "需先完成 Uppercase + Lowercase 全部關卡（每關至少 1⭐）";
-  };
+  const getGroupLockReason = (group) => group?.unlock?.description || "";
 
   const openSettings = () => {
     setPrevView(view);
@@ -169,19 +174,18 @@ export default function App() {
     setGroupId(null);
     setCurrentIndex(0);
     setLastStars(0);
+    setMessage("請選擇一個課程開始練習。");
     setView("groups");
   };
 
   const toGroup = (id) => {
     const group = groups.find((item) => item.id === id);
-
-    if (!group || !isGroupUnlocked(group)) {
-      return;
-    }
+    if (!group || !isGroupUnlocked(group)) return;
 
     setGroupId(id);
     setCurrentIndex(0);
     setLastStars(0);
+    setMessage(`已進入「${group.title}」關卡地圖。`);
     setView("map");
   };
 
@@ -191,6 +195,7 @@ export default function App() {
     setGroupId(null);
     setCurrentIndex(0);
     setLastStars(0);
+    setMessage("準備好了就開始練習吧！");
   };
 
   const backToGroups = () => {
@@ -205,159 +210,141 @@ export default function App() {
   };
 
   const pickLevelFromMap = (index) => {
+    if (!isLevelUnlocked(index)) {
+      setMessage("這一關尚未解鎖。");
+      return;
+    }
+
     setCurrentIndex(index);
-    setLastStars(starsByLevel[items[index].id] ?? 0);
+    setLastStars(getLevelBestStars(items[index]));
     setView("practice");
+    setMessage("沿著提示開始練習，完成後按下「我完成了」。");
     setClearSignal((signal) => signal + 1);
   };
 
   const isLevelUnlocked = (index) => {
-    if (index === 0) {
-      return true;
-    }
-
+    if (index === 0) return true;
     const previousLevel = items[index - 1];
-
-    return (starsByLevel[previousLevel.id] ?? 0) >= 1;
+    return getLevelBestStars(previousLevel) >= 1;
   };
 
   const goPrev = () => {
     if (!items.length) return;
-
     const nextIndex = (currentIndex - 1 + items.length) % items.length;
-
     if (!isLevelUnlocked(nextIndex)) {
       setMessage("上一關尚未解鎖。");
       return;
     }
 
     setCurrentIndex(nextIndex);
-    setLastStars(starsByLevel[items[nextIndex].id] ?? 0);
+    setLastStars(getLevelBestStars(items[nextIndex]));
     setClearSignal((signal) => signal + 1);
   };
 
   const goNext = () => {
     if (!items.length) return;
-
     const nextIndex = (currentIndex + 1) % items.length;
-
     if (!isLevelUnlocked(nextIndex)) {
       setMessage("下一關需要先在目前關卡取得至少 1 顆星。");
       return;
     }
 
     setCurrentIndex(nextIndex);
-    setLastStars(starsByLevel[items[nextIndex].id] ?? 0);
+    setLastStars(getLevelBestStars(items[nextIndex]));
     setClearSignal((signal) => signal + 1);
   };
 
   const clearCanvas = () => {
     setClearSignal((signal) => signal + 1);
-    setMessage("已清除，請重新描寫！");
-  };
-
-  const scoreToStars = (score) => {
-    if (score >= 60) return 3;
-    if (score >= 46) return 2;
-    if (score >= 41) return 1;
-    return 0;
-  };
-
-  const starText = (stars) => {
-    return "⭐".repeat(stars) + "☆".repeat(3 - stars);
+    setMessage("已清除，請重新練習！");
   };
 
   const encourage = () => {
     try {
-      console.log("[DEBUG] encourage() called", {
-        char: current?.char,
-        levelId: current?.id,
-        currentIndex,
-      });
-
       const result = canvasApiRef.current?.evaluateTracing?.();
 
-      console.log("[DEBUG] evaluateTracing result =", result);
-
-      /*
-       * 即使評測失敗，也要顯示 0 星視窗。
-       * 這樣使用者按下「我寫好了」後必定能看到回應。
-       */
       if (!result || typeof result.score !== "number") {
         setLastStars(0);
         setModalStars(0);
-        setMessage("目前無法取得評測結果，請清除後再寫一次。");
+        setMessage("目前無法取得評測結果，請清除後再試一次。");
+        setLastResult(null);
         setScoreModalOpen(true);
         return;
       }
 
-      const stars = scoreToStars(result.score);
-      const previousBestStars = starsByLevel[current.id] ?? 0;
+      const stars = scoreToStars(result.score, result.starThresholds);
+      const progressKey = getLevelProgressKey(current, currentMode);
+      const previousBestStars = getLevelBestStars(current);
 
       setLastStars(stars);
       setModalStars(stars);
+      setLastResult({
+        ...result,
+        stars,
+        text: current.text,
+        unit: current.unit,
+        language: current.language,
+      });
       setScoreModalOpen(true);
 
       setStarsByLevel((previous) => ({
         ...previous,
-        [current.id]: Math.max(previous[current.id] ?? 0, stars),
+        [progressKey]: Math.max(previous[progressKey] ?? 0, stars),
       }));
 
-      /*
-       * 只有第一次讓該關卡從未通關變成通關時，才增加完成次數，
-       * 避免重複按評測導致統計數字一直加。
-       */
       if (stars >= 1 && previousBestStars < 1) {
         setCompletedCount((count) => count + 1);
       }
 
-      if (stars >= 1) {
+      if (result.passed) {
         setMessage(
-          `太棒了！本次分數 ${result.score} 分，獲得 ${stars} 顆星！`
+          currentMode === "doodle"
+            ? `完成主題塗鴉！本次 ${result.score} 分，獲得 ${stars} 顆星。`
+            : `太棒了！本次分數 ${result.score} 分，獲得 ${stars} 顆星。`
         );
       } else {
         setMessage(
-          `本次分數 ${result.score} 分，再沿著灰字描寫一次試試看！`
+          currentMode === "doodle"
+            ? `本次塗鴉分數 ${result.score} 分，再畫滿一些試試看！`
+            : `本次分數 ${result.score} 分，再沿著提示描寫一次試試看！`
         );
       }
     } catch (error) {
       console.error("[ERROR] encourage failed:", error);
-
       setLastStars(0);
       setModalStars(0);
-      setMessage("評測時發生問題，請再寫一次。");
+      setLastResult(null);
+      setMessage("評測時發生問題，請再試一次。");
       setScoreModalOpen(true);
     }
   };
 
   const resetProgress = () => {
-    if (!window.confirm("確定要清除所有星星與解鎖進度嗎？")) {
-      return;
-    }
+    if (!window.confirm("確定要清除所有星星與解鎖進度嗎？")) return;
 
     setStarsByLevel({});
     setCompletedCount(0);
     setLastStars(0);
+    setLastResult(null);
+    setScoreModalOpen(false);
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   };
 
   const unlockAllLevels = () => {
-    if (!window.confirm("確定要解鎖所有關卡嗎？")) {
-      return;
-    }
+    if (!window.confirm("確定要解鎖所有關卡嗎？")) return;
 
-    const allLevelIds = Object.values(curriculum)
+    const allLevels = Object.values(curriculum)
       .flatMap((language) => language.groups)
-      .flatMap((group) => group.items)
-      .map((level) => level.id);
+      .flatMap((group) => group.items);
 
     setStarsByLevel((previous) => {
       const next = { ...previous };
-
-      allLevelIds.forEach((id) => {
-        next[id] = Math.max(next[id] ?? 0, 1);
+      allLevels.forEach((level) => {
+        (level.supportedModes || [level.mode || "writing"]).forEach((mode) => {
+          next[`${level.id}::${mode}`] = Math.max(next[`${level.id}::${mode}`] ?? 0, 1);
+        });
       });
-
       return next;
     });
   };
@@ -367,7 +354,7 @@ export default function App() {
       <main className="app">
         <header className="app-header">
           <h1>⚙️ 設定</h1>
-          <p>可調整筆色、格線與進度管理</p>
+          <p>調整筆色、格線、評分寬容度與預設練習模式</p>
         </header>
 
         <SettingsPanel
@@ -375,6 +362,10 @@ export default function App() {
           setBrushColor={setBrushColor}
           gridType={gridType}
           setGridType={setGridType}
+          defaultPracticeMode={defaultPracticeMode}
+          setDefaultPracticeMode={setDefaultPracticeMode}
+          toleranceLevel={toleranceLevel}
+          setToleranceLevel={setToleranceLevel}
           onResetProgress={resetProgress}
           onUnlockAll={unlockAllLevels}
           onClose={closeSettings}
@@ -388,7 +379,7 @@ export default function App() {
       <main className="app">
         <header className="app-header">
           <h1>🧒 CopyBook 練字樂園</h1>
-          <p>先選語言，再開始闖關練字！</p>
+          <p>先選語言，再開始闖關練字或主題塗鴉！</p>
         </header>
 
         <LanguageSelector onSelect={toLanguage} />
@@ -446,6 +437,9 @@ export default function App() {
           <span>{items.filter((_, index) => isLevelUnlocked(index)).length}</span>
           {" / "}
           {items.length}
+          {" ｜ "}
+          <strong>已完成：</strong>
+          {completedCount}
         </section>
 
         <LevelMap
@@ -453,6 +447,7 @@ export default function App() {
           items={items}
           currentIndex={currentIndex}
           starsByLevel={starsByLevel}
+          defaultPracticeMode={defaultPracticeMode}
           onSelectLevel={pickLevelFromMap}
           onBackToGroups={backToGroups}
         />
@@ -468,9 +463,7 @@ export default function App() {
     );
   }
 
-  if (!current) {
-    return null;
-  }
+  if (!current) return null;
 
   return (
     <main className="app">
@@ -478,11 +471,18 @@ export default function App() {
         <strong>關卡：</strong>
         {currentIndex + 1}/{items.length}
         {" ｜ "}
-        本次：<strong>{starText(lastStars)}</strong>
+        本次：<strong>{lastStars ? "⭐".repeat(lastStars) + "☆".repeat(3 - lastStars) : "☆☆☆"}</strong>
+        {" ｜ "}
+        模式：<strong>{currentMode === "doodle" ? "塗鴉" : "寫字"}</strong>
+        {" ｜ "}
+        寬容度：<strong>{toleranceLabel}</strong>
       </section>
+
+      <div className="message-box">{message}</div>
 
       <div className="practice-container">
         <Controls
+          practiceMode={currentMode}
           onPrev={goPrev}
           onNext={goNext}
           onClear={clearCanvas}
@@ -493,19 +493,25 @@ export default function App() {
         <div className="practice-main">
           <LetterCard
             title={groupTitle}
-            char={current.char}
+            text={current.text}
             hint={current.hint}
             index={currentIndex}
             total={items.length}
+            unit={current.unit}
+            language={current.language}
+            practiceMode={currentMode}
+            toleranceLabel={toleranceLabel}
           />
 
           <div className="writing-canvas-wrapper">
             <WritingCanvas
               ref={canvasApiRef}
-              guideChar={current.char}
-              brushSize={brushSize}
+              item={current}
+              practiceMode={currentMode}
+              brushSize={BRUSH_SIZE}
               brushColor={brushColor}
               gridType={gridType}
+              toleranceLevel={toleranceLevel}
               clearSignal={clearSignal}
             />
           </div>
@@ -523,6 +529,7 @@ export default function App() {
       <StarsModal
         open={scoreModalOpen}
         stars={modalStars}
+        result={lastResult}
         onRetry={() => {
           setScoreModalOpen(false);
           clearCanvas();

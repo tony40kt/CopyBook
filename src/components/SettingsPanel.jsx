@@ -14,6 +14,10 @@ export default function SettingsPanel({
   setBrushColor,
   gridType,
   setGridType,
+  defaultPracticeMode,
+  setDefaultPracticeMode,
+  toleranceLevel,
+  setToleranceLevel,
   onResetProgress,
   onUnlockAll,
   onClose,
@@ -50,6 +54,38 @@ export default function SettingsPanel({
             <option value="none">空白</option>
             <option value="tian">田字格</option>
             <option value="mi">米字格</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="settings-block">
+        <h3>練習模式</h3>
+        <div className="controls-row">
+          <label htmlFor="practiceModeSelect">預設模式：</label>
+          <select
+            id="practiceModeSelect"
+            value={defaultPracticeMode}
+            onChange={(e) => setDefaultPracticeMode(e.target.value)}
+          >
+            <option value="writing">寫字</option>
+            <option value="doodle">塗鴉</option>
+          </select>
+        </div>
+        <p className="settings-note">部分關卡只支援固定模式，進入後會自動切換並於題目卡上顯示。</p>
+      </div>
+
+      <div className="settings-block">
+        <h3>評分寬容度</h3>
+        <div className="controls-row">
+          <label htmlFor="toleranceSelect">寬容度：</label>
+          <select
+            id="toleranceSelect"
+            value={toleranceLevel}
+            onChange={(e) => setToleranceLevel(e.target.value)}
+          >
+            <option value="strict">嚴格</option>
+            <option value="standard">標準</option>
+            <option value="relaxed">寬鬆</option>
           </select>
         </div>
       </div>
