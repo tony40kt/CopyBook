@@ -169,7 +169,7 @@ const englishWordsBeginner = makeWordItems(
     "door",
     "cake",
     "rice",
-    "nood",
+    "food",
     "soup",
     "sand",
     "wind",

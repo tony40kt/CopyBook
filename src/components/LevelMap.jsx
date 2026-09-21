@@ -39,7 +39,11 @@ export default function LevelMap({
           const effectiveMode = lv.supportedModes?.includes(defaultPracticeMode)
             ? defaultPracticeMode
             : lv.mode;
-          const stars = starsByLevel?.[`${lv.id}::${effectiveMode}`] ?? 0;
+          const stars = Math.max(
+            ...((lv.supportedModes || [effectiveMode]).map(
+              (mode) => starsByLevel?.[`${lv.id}::${mode}`] ?? 0
+            ))
+          );
           const active = idx === currentIndex;
 
           return (

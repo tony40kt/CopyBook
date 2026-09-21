@@ -209,6 +209,11 @@ export default function App() {
   };
 
   const pickLevelFromMap = (index) => {
+    if (!isLevelUnlocked(index)) {
+      setMessage("這一關尚未解鎖。");
+      return;
+    }
+
     setCurrentIndex(index);
     setLastStars(starsByLevel[getLevelProgressKey(items[index])] ?? 0);
     setView("practice");
@@ -290,7 +295,7 @@ export default function App() {
         setCompletedCount((count) => count + 1);
       }
 
-      if (stars >= 1) {
+      if (result.passed) {
         setMessage(
           currentMode === "doodle"
             ? `完成主題塗鴉！本次 ${result.score} 分，獲得 ${stars} 顆星。`

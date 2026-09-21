@@ -278,6 +278,19 @@ const WritingCanvas = forwardRef(function WritingCanvas(
   const stopDrawing = useCallback(
     (event) => {
       event?.preventDefault?.();
+      if (activeStrokeRef.current && event) {
+        const point = getPoint(event);
+        const lastPoint =
+          activeStrokeRef.current.points[activeStrokeRef.current.points.length - 1];
+        if (
+          point &&
+          (!lastPoint || lastPoint.x !== point.x || lastPoint.y !== point.y)
+        ) {
+          activeStrokeRef.current.points.push(point);
+          redraw();
+        }
+      }
+
       const canvas = canvasRef.current;
       if (canvas && event?.pointerId != null) {
         canvas.releasePointerCapture?.(event.pointerId);
@@ -286,7 +299,7 @@ const WritingCanvas = forwardRef(function WritingCanvas(
       activeStrokeRef.current = null;
       setStrokeVersion((value) => value + 1);
     },
-    []
+    [getPoint, redraw]
   );
 
   useImperativeHandle(
