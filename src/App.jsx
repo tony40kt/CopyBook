@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { curriculum } from "./data/curriculum";
 import LanguageSelector from "./components/LanguageSelector";
 import GroupSelector from "./components/GroupSelector";
@@ -16,8 +16,23 @@ const LEGACY_STORAGE_KEY = "copybook_v42_progress";
 const SETTINGS_VERSION = 2;
 const BRUSH_SIZE = 15;
 
+function loadSavedProgress() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (error) {
+    console.warn("讀取本機進度失敗：", error);
+    return {};
+  }
+}
+
 export default function App() {
   const canvasApiRef = useRef(null);
+  const savedProgress = loadSavedProgress();
 
   const [view, setView] = useState("language");
   const [prevView, setPrevView] = useState("language");
@@ -26,10 +41,14 @@ export default function App() {
   const [groupId, setGroupId] = useState(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [brushColor, setBrushColor] = useState("#111111");
-  const [gridType, setGridType] = useState("tian");
-  const [defaultPracticeMode, setDefaultPracticeMode] = useState("writing");
-  const [toleranceLevel, setToleranceLevel] = useState("standard");
+  const [brushColor, setBrushColor] = useState(savedProgress.brushColor || "#111111");
+  const [gridType, setGridType] = useState(savedProgress.gridType || "tian");
+  const [defaultPracticeMode, setDefaultPracticeMode] = useState(
+    savedProgress.defaultPracticeMode || "writing"
+  );
+  const [toleranceLevel, setToleranceLevel] = useState(
+    savedProgress.toleranceLevel || "standard"
+  );
   const [clearSignal, setClearSignal] = useState(0);
 
   const [scoreModalOpen, setScoreModalOpen] = useState(false);
@@ -37,9 +56,9 @@ export default function App() {
   const [lastResult, setLastResult] = useState(null);
 
   const [message, setMessage] = useState("準備好了就開始練習吧！");
-  const [completedCount, setCompletedCount] = useState(0);
+  const [completedCount, setCompletedCount] = useState(savedProgress.completedCount || 0);
   const [lastStars, setLastStars] = useState(0);
-  const [starsByLevel, setStarsByLevel] = useState({});
+  const [starsByLevel, setStarsByLevel] = useState(savedProgress.starsByLevel || {});
 
   const lang = languageKey ? curriculum[languageKey] : null;
   const groups = lang?.groups || [];
@@ -47,49 +66,11 @@ export default function App() {
   const items = currentGroup?.items || [];
   const current = items[currentIndex] || null;
 
-  const currentMode = useMemo(() => {
-    if (!current) return defaultPracticeMode;
-    if (current.supportedModes?.includes(defaultPracticeMode)) {
-      return defaultPracticeMode;
-    }
-    return current.mode;
-  }, [current, defaultPracticeMode]);
-
-  const groupTitle = useMemo(() => currentGroup?.title || "", [currentGroup]);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (!raw) return;
-
-      const saved = JSON.parse(raw);
-      if (saved?.starsByLevel && typeof saved.starsByLevel === "object") {
-        setStarsByLevel(saved.starsByLevel);
-      }
-
-      if (typeof saved?.completedCount === "number") {
-        setCompletedCount(saved.completedCount);
-      }
-
-      if (typeof saved?.brushColor === "string") {
-        setBrushColor(saved.brushColor);
-      }
-
-      if (typeof saved?.gridType === "string") {
-        setGridType(saved.gridType);
-      }
-
-      if (typeof saved?.defaultPracticeMode === "string") {
-        setDefaultPracticeMode(saved.defaultPracticeMode);
-      }
-
-      if (typeof saved?.toleranceLevel === "string") {
-        setToleranceLevel(saved.toleranceLevel);
-      }
-    } catch (error) {
-      console.warn("讀取本機進度失敗：", error);
-    }
-  }, []);
+  const currentMode =
+    !current || current.supportedModes?.includes(defaultPracticeMode)
+      ? defaultPracticeMode
+      : current.mode;
+  const groupTitle = currentGroup?.title || "";
 
   useEffect(() => {
     localStorage.setItem(
