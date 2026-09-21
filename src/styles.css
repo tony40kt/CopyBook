@@ -660,6 +660,13 @@ select {
   font-weight: 900;
 }
 
+.settings-note {
+  margin: 10px 0 0;
+  color: #6074b5;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .color-grid {
   display: grid;
   grid-template-columns: repeat(4, 46px);

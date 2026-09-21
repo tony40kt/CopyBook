@@ -30,6 +30,15 @@ function loadSavedProgress() {
   }
 }
 
+function normalizeStoredStars(storedStars = {}) {
+  return Object.fromEntries(
+    Object.entries(storedStars).map(([key, value]) => [
+      key.includes("::") ? key : `${key}::writing`,
+      value,
+    ])
+  );
+}
+
 export default function App() {
   const canvasApiRef = useRef(null);
   const savedProgress = loadSavedProgress();
@@ -58,7 +67,9 @@ export default function App() {
   const [message, setMessage] = useState("準備好了就開始練習吧！");
   const [completedCount, setCompletedCount] = useState(savedProgress.completedCount || 0);
   const [lastStars, setLastStars] = useState(0);
-  const [starsByLevel, setStarsByLevel] = useState(savedProgress.starsByLevel || {});
+  const [starsByLevel, setStarsByLevel] = useState(
+    normalizeStoredStars(savedProgress.starsByLevel || {})
+  );
 
   const lang = languageKey ? curriculum[languageKey] : null;
   const groups = lang?.groups || [];
@@ -66,10 +77,15 @@ export default function App() {
   const items = currentGroup?.items || [];
   const current = items[currentIndex] || null;
 
-  const currentMode =
-    !current || current.supportedModes?.includes(defaultPracticeMode)
+  const getLevelMode = (level) =>
+    !level || level.supportedModes?.includes(defaultPracticeMode)
       ? defaultPracticeMode
-      : current.mode;
+      : level.mode;
+
+  const getLevelProgressKey = (level, mode = getLevelMode(level)) =>
+    level ? `${level.id}::${mode}` : "";
+
+  const currentMode = getLevelMode(current);
   const groupTitle = currentGroup?.title || "";
 
   useEffect(() => {
@@ -94,7 +110,9 @@ export default function App() {
     const total = group?.items?.length ?? 0;
     if (!total) return { done: 0, total: 0, percent: 0 };
 
-    const done = group.items.filter((level) => (starsByLevel[level.id] ?? 0) >= 1).length;
+    const done = group.items.filter(
+      (level) => (starsByLevel[getLevelProgressKey(level)] ?? 0) >= 1
+    ).length;
     return {
       done,
       total,
@@ -127,7 +145,9 @@ export default function App() {
       return (group.unlock.groups || []).every((gid) => {
         const requiredGroup = getGroupById(gid);
         return requiredGroup
-          ? requiredGroup.items.every((level) => (starsByLevel[level.id] ?? 0) >= 1)
+          ? requiredGroup.items.every(
+              (level) => (starsByLevel[getLevelProgressKey(level)] ?? 0) >= 1
+            )
           : false;
       });
     }
@@ -188,7 +208,7 @@ export default function App() {
 
   const pickLevelFromMap = (index) => {
     setCurrentIndex(index);
-    setLastStars(starsByLevel[items[index].id] ?? 0);
+    setLastStars(starsByLevel[getLevelProgressKey(items[index])] ?? 0);
     setView("practice");
     setMessage("沿著提示開始練習，完成後按下「我完成了」。");
     setClearSignal((signal) => signal + 1);
@@ -197,7 +217,7 @@ export default function App() {
   const isLevelUnlocked = (index) => {
     if (index === 0) return true;
     const previousLevel = items[index - 1];
-    return (starsByLevel[previousLevel.id] ?? 0) >= 1;
+    return (starsByLevel[getLevelProgressKey(previousLevel)] ?? 0) >= 1;
   };
 
   const goPrev = () => {
@@ -209,7 +229,7 @@ export default function App() {
     }
 
     setCurrentIndex(nextIndex);
-    setLastStars(starsByLevel[items[nextIndex].id] ?? 0);
+    setLastStars(starsByLevel[getLevelProgressKey(items[nextIndex])] ?? 0);
     setClearSignal((signal) => signal + 1);
   };
 
@@ -222,7 +242,7 @@ export default function App() {
     }
 
     setCurrentIndex(nextIndex);
-    setLastStars(starsByLevel[items[nextIndex].id] ?? 0);
+    setLastStars(starsByLevel[getLevelProgressKey(items[nextIndex])] ?? 0);
     setClearSignal((signal) => signal + 1);
   };
 
@@ -245,7 +265,8 @@ export default function App() {
       }
 
       const stars = scoreToStars(result.score, result.starThresholds);
-      const previousBestStars = starsByLevel[current.id] ?? 0;
+      const progressKey = getLevelProgressKey(current, currentMode);
+      const previousBestStars = starsByLevel[progressKey] ?? 0;
 
       setLastStars(stars);
       setModalStars(stars);
@@ -260,7 +281,7 @@ export default function App() {
 
       setStarsByLevel((previous) => ({
         ...previous,
-        [current.id]: Math.max(previous[current.id] ?? 0, stars),
+        [progressKey]: Math.max(previous[progressKey] ?? 0, stars),
       }));
 
       if (stars >= 1 && previousBestStars < 1) {
@@ -311,7 +332,8 @@ export default function App() {
     setStarsByLevel((previous) => {
       const next = { ...previous };
       allLevelIds.forEach((id) => {
-        next[id] = Math.max(next[id] ?? 0, 1);
+        next[`${id}::writing`] = Math.max(next[`${id}::writing`] ?? 0, 1);
+        next[`${id}::doodle`] = Math.max(next[`${id}::doodle`] ?? 0, 1);
       });
       return next;
     });
@@ -415,6 +437,7 @@ export default function App() {
           items={items}
           currentIndex={currentIndex}
           starsByLevel={starsByLevel}
+          defaultPracticeMode={defaultPracticeMode}
           onSelectLevel={pickLevelFromMap}
           onBackToGroups={backToGroups}
         />

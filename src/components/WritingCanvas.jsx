@@ -325,7 +325,6 @@ const WritingCanvas = forwardRef(function WritingCanvas(
         onPointerDown={startDrawing}
         onPointerMove={moveDrawing}
         onPointerUp={stopDrawing}
-        onPointerLeave={stopDrawing}
         onPointerCancel={stopDrawing}
       />
     </div>

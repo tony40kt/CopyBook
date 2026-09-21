@@ -11,6 +11,7 @@ export default function LevelMap({
   items,
   currentIndex,
   starsByLevel,
+  defaultPracticeMode,
   onSelectLevel,
   onBackToGroups,
 }) {
@@ -20,7 +21,10 @@ export default function LevelMap({
   const isUnlocked = (idx) => {
     if (idx === 0) return true;
     const prev = items[idx - 1];
-    const prevStars = starsByLevel?.[prev.id] ?? 0;
+    const prevMode = prev.supportedModes?.includes(defaultPracticeMode)
+      ? defaultPracticeMode
+      : prev.mode;
+    const prevStars = starsByLevel?.[`${prev.id}::${prevMode}`] ?? 0;
     return prevStars >= 1;
   };
 
@@ -32,7 +36,10 @@ export default function LevelMap({
       <div className="level-map-grid">
         {items.map((lv, idx) => {
           const unlocked = isUnlocked(idx);
-          const stars = starsByLevel?.[lv.id] ?? 0;
+          const effectiveMode = lv.supportedModes?.includes(defaultPracticeMode)
+            ? defaultPracticeMode
+            : lv.mode;
+          const stars = starsByLevel?.[`${lv.id}::${effectiveMode}`] ?? 0;
           const active = idx === currentIndex;
 
           return (
@@ -45,7 +52,7 @@ export default function LevelMap({
             >
               <span className="node-index">{idx + 1}</span>
               <span className="node-char">{truncateText(lv.text)}</span>
-              <span className="node-mode">{lv.mode === "doodle" ? "塗鴉" : "寫字"}</span>
+              <span className="node-mode">{effectiveMode === "doodle" ? "塗鴉" : "寫字"}</span>
               <span className="node-stars">{starsText(stars)}</span>
               {!unlocked && <span className="node-lock">🔒</span>}
             </button>

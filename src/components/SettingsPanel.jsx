@@ -71,6 +71,7 @@ export default function SettingsPanel({
             <option value="doodle">塗鴉</option>
           </select>
         </div>
+        <p className="settings-note">部分關卡只支援固定模式，進入後會自動切換並於題目卡上顯示。</p>
       </div>
 
       <div className="settings-block">
