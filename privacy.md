@@ -149,3 +149,157 @@
 ---
 
 感謝您使用 CopyLand。
+
+
+
+# CopyBook Privacy Policy
+
+**Effective Date: September 28, 2026**  
+**Last Updated: September 28, 2026**
+
+Welcome to **CopyLand** (the “App”).  
+This Privacy Policy explains how we collect, use, share, and protect information when you use the App.
+
+---
+
+## 1. Who We Are
+
+- **App Name**: CopyLand 
+- **Developer**: Tony40kt   
+- **Contact**: Tony40kt@gmail.com
+
+---
+
+## 2. Scope of This Policy
+
+This Privacy Policy applies to all use of the App on Android devices, including:
+
+- Handwriting and doodling features
+- Ad-based unlock features
+- Paid unlock features (Google Play in-app purchases)
+
+---
+
+## 3. Information We May Collect
+
+### 3.1 Device and Technical Information (may be collected by third-party SDKs)
+When you use the App, third-party services (such as Google AdMob and Google Play Billing) may collect information for advertising, diagnostics, maintenance, and security purposes, including:
+
+- Device identifiers (such as Advertising ID)
+- IP address
+- Device model and OS version
+- App version and usage status
+- Ad interaction events (impressions, clicks, reward completion)
+- Transaction status information (for example, purchase success or restore status)
+
+### 3.2 Local App Data (stored on your device)
+The App stores certain data locally on your device to provide features and improve your experience, such as:
+
+- Learning progress (levels, stars, settings)
+- Unlocked color and level status
+- Purchase-related unlock status (for display and entitlement)
+
+> Local data is generally stored on your device. It may be lost if you uninstall the App, clear app data, or change devices. Purchased entitlements may be restored using the **Restore Purchases** function, provided you use the same Google account.
+
+### 3.3 Information We Do Not Actively Request
+Unless future features require it (with additional notice), we do not actively request:
+
+- National ID numbers
+- Credit/debit card numbers (payments are handled by Google Play)
+- Contacts, SMS, or photos (unless explicitly required by a feature and authorized by you)
+
+---
+
+## 4. How We Use Information
+
+We use the information above to:
+
+1. Provide core App functionality (writing practice, doodling, level progress)
+2. Provide ads and ad-reward unlock features
+3. Provide paid unlock and purchase restore features
+4. Debug issues, improve performance, and prevent abuse
+5. Comply with legal obligations and platform policies
+
+---
+
+## 5. Third-Party Services and Data Sharing
+
+The App may integrate third-party services that process data according to their own privacy practices, including:
+
+- **Google AdMob** (ad delivery and ad performance)
+- **Google Play Billing** (in-app purchase processing)
+
+Please also review:
+
+- Google Privacy Policy: https://policies.google.com/privacy
+- Google Play policies: https://play.google.com/about/developer-content-policy/
+
+We do not sell your personal information.
+
+---
+
+## 6. Ads and Personalization
+
+The App may display ads and, where required by law, show privacy choices or consent messages.  
+You may manage ad preferences through your device settings and Google privacy controls, where available.
+
+---
+
+## 7. In-App Purchases and Payment Information
+
+Payments are processed by **Google Play**.  
+We do not directly collect or store your full card details or full payment credentials.  
+We only receive necessary transaction status data to grant unlock entitlements.
+
+---
+
+## 8. Data Retention
+
+- **Local app data**: stored on your device until removed by uninstalling the App, clearing data, or resetting progress.
+- **Third-party service data**: retained according to the respective providers’ policies and applicable laws.
+
+---
+
+## 9. Data Security
+
+We take reasonable measures to protect data, including minimizing unnecessary data collection and limiting data usage to legitimate purposes.  
+However, no internet or mobile transmission/storage method is 100% secure.
+
+---
+
+## 10. Children and Minors
+
+If the App is used by children or minors, we strive to comply with applicable laws and platform requirements (including Google Play Families policies, where applicable).  
+Parents or guardians may contact us for assistance or inquiries.
+
+---
+
+## 11. Your Rights
+
+Depending on your jurisdiction, you may have rights to:
+
+- Know how your data is used
+- Request correction or deletion (where technically feasible and legally permitted)
+- Withdraw consent or adjust privacy choices (where applicable)
+
+To exercise your rights, please contact us using the details below.
+
+---
+
+## 12. Changes to This Policy
+
+We may update this Privacy Policy due to legal, technical, or product changes.  
+Updated versions will be posted on this page with a revised “Last Updated” date.
+
+---
+
+## 13. Contact Us
+
+If you have any questions about this Privacy Policy, please contact:
+
+- **Email**: Tony40kt@gmail.com
+- **Developer Name**: Tony40kt
+
+---
+
+Thank you for using CopyLand.
