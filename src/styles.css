@@ -833,3 +833,100 @@ select {
     grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   }
 }
+
+.home-banner-space {
+  width: 100%;
+  min-height: 52px;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #ffffff;
+}
+
+.group-main-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  text-align: left;
+}
+
+.group-main-button:hover {
+  transform: none;
+  background: transparent;
+  filter: none;
+  box-shadow: none;
+}
+
+.group-lock-panel {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.group-purchase-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.group-purchase-actions button {
+  min-height: 42px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+}
+
+.color-dot {
+  position: relative;
+  overflow: visible;
+}
+
+.color-dot.locked {
+  filter: grayscale(20%);
+  opacity: 0.72;
+}
+
+.color-lock {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  font-size: 0.8rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.node-ad-unlocked {
+  color: #d47b00;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+@media (max-width: 720px) {
+  .group-purchase-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .group-purchase-actions button {
+    width: 100%;
+  }
+}
+
+.home-page-shell {
+  width: min(1060px, 100%);
+}
+
+.home-page-shell .app {
+  width: 100%;
+}

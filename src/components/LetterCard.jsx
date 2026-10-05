@@ -37,7 +37,7 @@ export default function LetterCard({
         {text}
       </div>
 
-      <p className="letter-hint">✍️ 提示：{hint}</p>
+      
     </section>
   );
 }

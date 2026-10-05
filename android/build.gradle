@@ -9,6 +9,9 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.2'
         classpath 'com.google.gms:google-services:4.4.2'
+        
+        // ✨ 新增這行：加入支援 Java 21 的 Kotlin 外掛版本
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -24,6 +27,7 @@ allprojects {
     }
 }
 
+// ✨ 修正這裡：Gradle 8.x 以上淘汰了 buildDir 屬性，改用 layout.buildDirectory
 task clean(type: Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }

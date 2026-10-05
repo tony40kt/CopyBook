@@ -17,6 +17,15 @@ const unlockAllLetters = {
   description: "需先完成 Uppercase + Lowercase 全部關卡（每關至少 1⭐）",
 };
 
+// 請在 curriculum.js 裡把這個規則更新為：
+const unlockZhAdvancedLayers = {
+  type: "requireZhLayersTwentyStars",
+  prefixes: ["zh-b", "zh-i"], // 初級(zh-b)、中級(zh-i)、高級(zh-a)的代號
+  description: "需先完成 中文初級、中級各 20 關以上（每關至少 1⭐）",
+};
+
+
+
 const makeItem = ({
   id,
   text,
@@ -844,7 +853,7 @@ export const curriculum = {
         unlock: { type: "none", description: "" },
       },
       {
-        id: "word-beginner",
+        id: "word_beginner",
         title: "🟢 Words Beginner (2-4 letters)",
         description: "100 levels · need uppercase + lowercase all >=1⭐",
         recommendedMode: "writing",
@@ -852,7 +861,7 @@ export const curriculum = {
         unlock: unlockAllLetters,
       },
       {
-        id: "word-intermediate",
+        id: "word_intermediate",
         title: "🟡 Words Intermediate (4-6 letters)",
         description: "100 levels · need uppercase + lowercase all >=1⭐",
         recommendedMode: "writing",
@@ -860,7 +869,7 @@ export const curriculum = {
         unlock: unlockAllLetters,
       },
       {
-        id: "word-advanced",
+        id: "word_advanced",
         title: "🔴 Words Advanced (5+ letters)",
         description: "100 levels · need uppercase + lowercase all >=1⭐",
         recommendedMode: "writing",
@@ -868,7 +877,7 @@ export const curriculum = {
         unlock: unlockAllLetters,
       },
       {
-        id: "word-doodle",
+        id: "word_doodle",
         title: "🎨 Creative Doodles",
         description: "12 levels · draw from English prompts",
         recommendedMode: "doodle",
@@ -882,7 +891,7 @@ export const curriculum = {
     label: "中文",
     groups: [
       {
-        id: "zh-beginner",
+        id: "zh_beginner",
         title: "🟢 初級 Beginner（1-5 劃）",
         description: "100 levels · writing or doodle",
         recommendedMode: "writing",
@@ -890,7 +899,7 @@ export const curriculum = {
         unlock: { type: "none", description: "" },
       },
       {
-        id: "zh-intermediate",
+        id: "zh_intermediate",
         title: "🟡 中級 Intermediate（6-11 劃）",
         description: "100 levels · writing or doodle",
         recommendedMode: "writing",
@@ -898,23 +907,23 @@ export const curriculum = {
         unlock: { type: "none", description: "" },
       },
       {
-        id: "zh-advanced",
+        id: "zh_advanced",
         title: "🔴 高級 Advanced（12+ 劃）",
         description: "100 levels · writing or doodle",
         recommendedMode: "writing",
         items: zhAdvanced,
-        unlock: { type: "none", description: "" },
+        unlock: unlockZhAdvancedLayers
       },
       {
-        id: "zh-words",
+        id: "zh_words",
         title: "🟣 中文詞語",
         description: "20 levels · multi-character writing",
         recommendedMode: "writing",
         items: zhWords,
-        unlock: { type: "none", description: "" },
+        unlock: unlockZhAdvancedLayers,
       },
       {
-        id: "zh-doodle",
+        id: "zh_doodle",
         title: "🎨 主題塗鴉",
         description: "10 levels · draw from Chinese prompts",
         recommendedMode: "doodle",

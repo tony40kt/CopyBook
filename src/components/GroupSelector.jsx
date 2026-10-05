@@ -6,59 +6,128 @@ export default function GroupSelector({
   getUnlockRequirementsProgress,
   onBack,
   onPickGroup,
+  onRequestPurchase,
 }) {
   return (
     <section className="selector-card">
       <h2>{languageLabel} 課程選擇</h2>
 
       <div className="group-list">
-        {groups.map((g) => {
-          const unlocked = isGroupUnlocked(g);
-          const lockReason = unlocked ? "" : getGroupLockReason(g);
-          const reqProgress = !unlocked ? getUnlockRequirementsProgress(g) : [];
+        {groups.map((group) => {
+          const unlocked = isGroupUnlocked(group);
+          const lockReason = unlocked
+            ? ""
+            : getGroupLockReason(group);
+
+          const reqProgress = !unlocked
+            ? getUnlockRequirementsProgress(group)
+            : [];
 
           return (
-            <button
-              key={g.id}
-              className={`group-item ${!unlocked ? "locked" : ""}`}
-              onClick={() => unlocked && onPickGroup(g.id)}
-              disabled={!unlocked}
-              title={unlocked ? g.title : lockReason}
+            <div
+              key={group.id}
+              className={`group-item ${
+                !unlocked ? "locked" : ""
+              }`}
             >
-              <strong>
-                {g.title} {!unlocked && "🔒"}
-              </strong>
-              <span>{g.description}</span>
-              <em>建議模式：{g.recommendedMode === "doodle" ? "塗鴉" : "寫字"}</em>
-              <em>共 {g.items.length} 關</em>
+              <button
+                type="button"
+                className="group-main-button"
+                onClick={() => {
+                  if (unlocked) {
+                    onPickGroup(group.id);
+                  }
+                }}
+                title={unlocked ? group.title : lockReason}
+              >
+                <strong>
+                  {group.title} {!unlocked && "🔒"}
+                </strong>
 
-              {!unlocked && <small>{lockReason}</small>}
+                <span>{group.description}</span>
 
-              {!unlocked && reqProgress?.length > 0 && (
-                <div className="unlock-progress-wrap">
-                  {reqProgress.map((p) => (
-                    <div key={p.id} className="unlock-progress-item">
-                      <div className="unlock-progress-head">
-                        <span>{p.title}</span>
-                        <span>{p.done}/{p.total}（{p.percent}%）</span>
-                      </div>
-                      <div className="unlock-progress-bar">
+                <em>
+                  建議模式：
+                  {group.recommendedMode === "doodle"
+                    ? "塗鴉"
+                    : "寫字"}
+                </em>
+
+                <em>共 {group.items.length} 關</em>
+              </button>
+
+              {!unlocked && (
+                <div className="group-lock-panel">
+                  <small>{lockReason}</small>
+
+                  {reqProgress.length > 0 && (
+                    <div className="unlock-progress-wrap">
+                      {reqProgress.map((progress) => (
                         <div
-                          className="unlock-progress-fill"
-                          style={{ width: `${p.percent}%` }}
-                        />
-                      </div>
+                          key={progress.id}
+                          className="unlock-progress-item"
+                        >
+                          <div className="unlock-progress-head">
+                            <span>{progress.title}</span>
+                            <span>
+                              {progress.done}/{progress.total}
+                              （{progress.percent}%）
+                            </span>
+                          </div>
+
+                          <div className="unlock-progress-bar">
+                            <div
+                              className="unlock-progress-fill"
+                              style={{
+                                width: `${progress.percent}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+
+                  <div className="group-purchase-actions">
+                    <button
+                      type="button"
+                      className="accent"
+                      onClick={() =>
+                        onRequestPurchase?.(
+                          `copybook_course_${group.id}`
+                        )
+                      }
+                    >
+                      💳 付費解鎖本課程
+                    </button>
+
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() =>
+                        onRequestPurchase?.(
+                          "copybook_premium_all"
+                        )
+                      }
+                    >
+                      ⭐ 解鎖全部課程
+                    </button>
+                  </div>
                 </div>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
 
       <div className="selector-actions">
-        <button className="secondary" onClick={onBack}>⬅️ 主目錄</button>
+        <button
+          type="button"
+          className="secondary"
+          onClick={onBack}
+        >
+          ⬅️ 主目錄
+        </button>
       </div>
     </section>
   );

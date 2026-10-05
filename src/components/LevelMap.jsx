@@ -1,3 +1,5 @@
+import { isLevelAdUnlocked } from "../services/entitlements";
+
 function starsText(n = 0) {
   return "⭐".repeat(n) + "☆".repeat(3 - n);
 }
@@ -7,6 +9,7 @@ function truncateText(text = "") {
 }
 
 export default function LevelMap({
+  groupId,
   groupTitle,
   items,
   currentIndex,
@@ -15,17 +18,21 @@ export default function LevelMap({
   onSelectLevel,
   onBackToGroups,
 }) {
-  // 解鎖規則：
-  // 第1關永遠解鎖
-  // 第N關需前一關 >=1星
-  const isUnlocked = (idx) => {
+  const isNormallyUnlocked = (idx) => {
     if (idx === 0) return true;
-    const prev = items[idx - 1];
-    const prevModes = prev.supportedModes || [prev.mode];
-    const prevStars = Math.max(
-      ...prevModes.map((mode) => starsByLevel?.[`${prev.id}::${mode}`] ?? 0)
+
+    const previous = items[idx - 1];
+    const previousModes =
+      previous.supportedModes || [previous.mode];
+
+    const previousStars = Math.max(
+      ...previousModes.map(
+        (mode) =>
+          starsByLevel?.[`${previous.id}::${mode}`] ?? 0
+      )
     );
-    return prevStars >= 1;
+
+    return previousStars >= 1;
   };
 
   return (
@@ -34,42 +41,85 @@ export default function LevelMap({
       <p className="map-subtitle">{groupTitle}</p>
 
       <div className="level-map-grid">
-        {items.map((lv, idx) => {
-          const unlocked = isUnlocked(idx);
-          const effectiveMode = lv.supportedModes?.includes(defaultPracticeMode)
-            ? defaultPracticeMode
-            : lv.mode;
+        {items.map((level, index) => {
+          const normalUnlocked = isNormallyUnlocked(index);
+          const adUnlocked = isLevelAdUnlocked(level.id);
+          const unlocked = normalUnlocked || adUnlocked;
+
+          const effectiveMode =
+            level.supportedModes?.includes(defaultPracticeMode)
+              ? defaultPracticeMode
+              : level.mode;
+
           const stars = Math.max(
-            ...((lv.supportedModes || [effectiveMode]).map(
-              (mode) => starsByLevel?.[`${lv.id}::${mode}`] ?? 0
-            ))
+            ...(
+              level.supportedModes || [effectiveMode]
+            ).map(
+              (mode) =>
+                starsByLevel?.[`${level.id}::${mode}`] ?? 0
+            )
           );
-          const active = idx === currentIndex;
+
+          const active = index === currentIndex;
 
           return (
             <button
-              key={lv.id}
-              className={`level-node ${active ? "active" : ""} ${!unlocked ? "locked" : ""}`}
-              onClick={() => unlocked && onSelectLevel(idx)}
-              disabled={!unlocked}
-              title={unlocked ? `${lv.text} - ${starsText(stars)}` : "先完成前一關拿至少1星"}
+              key={level.id}
+              type="button"
+              className={[
+                "level-node",
+                active ? "active" : "",
+                !unlocked ? "locked" : "",
+              ].join(" ")}
+              onClick={() => onSelectLevel(index)}
+              title={
+                unlocked
+                  ? `${level.text} - ${starsText(stars)}`
+                  : "觀看一次廣告解鎖此關"
+              }
             >
-              <span className="node-index">{idx + 1}</span>
-              <span className="node-char">{truncateText(lv.text)}</span>
-              <span className="node-mode">{effectiveMode === "doodle" ? "塗鴉" : "寫字"}</span>
-              <span className="node-stars">{starsText(stars)}</span>
-              {!unlocked && <span className="node-lock">🔒</span>}
+              <span className="node-index">
+                {index + 1}
+              </span>
+
+              <span className="node-char">
+                {truncateText(level.text)}
+              </span>
+
+              <span className="node-mode">
+                {effectiveMode === "doodle" ? "塗鴉" : "寫字"}
+              </span>
+
+              <span className="node-stars">
+                {starsText(stars)}
+              </span>
+
+              {!unlocked && (
+                <span className="node-lock">🔒</span>
+              )}
+
+              {adUnlocked && !normalUnlocked && (
+                <span className="node-ad-unlocked">
+                  廣告解鎖
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
       <div className="map-legend">
-        <span>解鎖條件：前一關至少 1⭐</span>
+        <span>
+          未解鎖關卡可以觀看一次獎勵廣告解鎖。
+        </span>
       </div>
 
       <div className="selector-actions">
-        <button className="secondary" onClick={onBackToGroups}>
+        <button
+          type="button"
+          className="secondary"
+          onClick={onBackToGroups}
+        >
           ⬅️ 返回
         </button>
       </div>
