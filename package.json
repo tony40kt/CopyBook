@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@capacitor-community/admob": "7.2.0",
+    "@capacitor-community/text-to-speech": "^8.0.2",
     "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.1.2",
     "@capacitor/cli": "^7.6.8",
     "@capacitor/core": "^8.5.0",
+    "@capgo/capacitor-intent-launcher": "^8.3.33",
     "@capgo/native-purchases": "^8.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

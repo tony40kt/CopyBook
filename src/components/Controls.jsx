@@ -1,60 +1,34 @@
 export default function Controls({
-  practiceMode,
   onPrev,
   onNext,
+  onPronounce,
   onClear,
   onEncourage,
   onBackToGroups,
 }) {
   return (
     <aside className="controls-left">
-      <button
-        className="ctrl-btn"
-        onClick={() => {
-          console.log("[DEBUG] Controls: Prev clicked");
-          onPrev && onPrev();
-        }}
-      >
+      <button type="button" className="ctrl-btn" onClick={() => onPrev?.()}>
         ⬆️ 上一個
       </button>
 
-      <button
-        className="ctrl-btn"
-        onClick={() => {
-          console.log("[DEBUG] Controls: Next clicked");
-          onNext && onNext();
-        }}
-      >
+      <button type="button" className="ctrl-btn" onClick={() => onNext?.()}>
         ⬇️ 下一個
       </button>
 
-      <button
-        className="ctrl-btn"
-        onClick={() => {
-          console.log("[DEBUG] Controls: Clear clicked");
-          onClear && onClear();
-        }}
-      >
+      <button type="button" className="ctrl-btn accent" onClick={() => onPronounce?.()}>
+        🔊 發音
+      </button>
+
+      <button type="button" className="ctrl-btn" onClick={() => onClear?.()}>
         🧽 清除
       </button>
 
-      <button
-        className="ctrl-btn accent"
-        onClick={() => {
-          console.log("[DEBUG] Controls: Encourage clicked");
-          onEncourage && onEncourage();
-        }}
-      >
-        {practiceMode === "doodle" ? "🎨 我完成了" : "✅ 我寫好了"}
+      <button type="button" className="ctrl-btn accent" onClick={() => onEncourage?.()}>
+        ✅ 我寫好了
       </button>
 
-      <button
-        className="ctrl-btn"
-        onClick={() => {
-          console.log("[DEBUG] Controls: Back to map clicked");
-          onBackToGroups && onBackToGroups();
-        }}
-      >
+      <button type="button" className="ctrl-btn" onClick={() => onBackToGroups?.()}>
         📚 返回
       </button>
     </aside>

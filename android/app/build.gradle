@@ -1,50 +1,70 @@
 apply plugin: 'com.android.application'
 
 android {
+    // 專案的唯一應用程式識別識別碼與開發命名空間
     namespace "com.tony40kt.copybook"
     compileSdk rootProject.ext.compileSdkVersion
+    
     defaultConfig {
         applicationId "com.tony40kt.copybook"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "1.1.1"
+        versionCode 8
+        versionName "2.0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+             // 排除開發過程產生的多餘暫存檔或特定版本控制目錄，確保產線版 Assets 最精簡
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // 🎯 【優化完成：解決 DEX 程式碼最佳化警告】
+            // 1. 開啟 R8 編譯器的程式碼縮減與資源混淆功能，大幅縮減安裝包體積
+            minifyEnabled true
+            
+            // 2. 開啟資源自動縮減，剔除無用的圖片或配置檔案
+            shrinkResources true
+            
+            // 3. 【核心修正】將 'proguard-android.txt' 安全替換為官方帶有進階最佳化演算法的 '-optimize' 版本
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 repositories {
+    // 註冊 Capacitor 與 Cordova 外掛套件所需的二進位依賴庫路徑
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
 
 dependencies {
+    // 引用本機實體外部 JAR 依賴庫
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    
+    // 引入 Android 核心元件、協調佈局與 Capacitor 原生外殼
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    
+    // 單元測試與自動化測試相關依賴庫
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    
+    // 核心整合：引入所有已轉換的 Cordova 跨平台外掛套件（包含內購與 AdMob 廣告）
     implementation project(':capacitor-cordova-android-plugins')
 }
 
+// 載入由 Capacitor 自動生成的建置配置腳本
 apply from: 'capacitor.build.gradle'
 
 try {
+    // 檢查 Firebase 或 Google Play 服務配置文件是否存在，若有則自動套用 GMS 服務
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
@@ -52,6 +72,8 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+// 衝突防禦：排除舊版過時的 Kotlin 標準庫依賴，避免與現代高版本 Android 系統發生編譯衝突
 configurations.all {
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"

@@ -1,3 +1,7 @@
+/**
+ * 中文字與一般筆劃練習共用的預設提示樣式。
+ * 各題可透過 guide 欄位覆寫個別設定。
+ */
 const DEFAULT_GUIDE = {
   fontFamily: '"KaiTi", "Noto Sans TC", "Segoe UI", sans-serif',
   fontWeight: 700,
@@ -6,26 +10,34 @@ const DEFAULT_GUIDE = {
   letterSpacing: 0,
 };
 
+/** 英文字母與英文單字專用字型，其餘提示樣式沿用預設值。 */
 const ENGLISH_GUIDE = {
   ...DEFAULT_GUIDE,
   fontFamily: '"Avenir Next", "Segoe UI", "Noto Sans TC", sans-serif',
 };
 
+/**
+ * 英文詞語課程的解鎖條件：大小寫字母課程的每一關都須取得至少一顆星。
+ */
 const unlockAllLetters = {
   type: "requireGroupsAllOneStar",
   groups: ["uppercase", "lowercase"],
   description: "需先完成 Uppercase + Lowercase 全部關卡（每關至少 1⭐）",
 };
 
-// 請在 curriculum.js 裡把這個規則更新為：
+/**
+ * 中文進階課程的解鎖條件：初級及中級各至少完成 20 關並取得一顆星。
+ */
 const unlockZhAdvancedLayers = {
   type: "requireZhLayersTwentyStars",
-  prefixes: ["zh-b", "zh-i"], // 初級(zh-b)、中級(zh-i)、高級(zh-a)的代號
   description: "需先完成 中文初級、中級各 20 關以上（每關至少 1⭐）",
 };
 
-
-
+/**
+ * 建立統一格式的單一練習項目，合併語言預設樣式與題目自訂的評分設定。
+ * @param {Object} options 題目設定，包含 ID、文字、提示、語言、單位、模式與覆寫選項。
+ * @returns {Object} 包含顯示、練習、評分及（單字題）分段資料的題目物件。
+ */
 const makeItem = ({
   id,
   text,
@@ -36,7 +48,6 @@ const makeItem = ({
   guide = {},
   evaluation = {},
   supportedModes,
-  segments,
 }) => ({
   id,
   text,
@@ -46,8 +57,9 @@ const makeItem = ({
   unit,
   type: unit,
   mode,
-  supportedModes: supportedModes || [mode],
+  supportedModes,
   guide: {
+    // 英文題套用英文專用字型，其他語言使用共用預設字型。
     ...(language === "english" ? ENGLISH_GUIDE : DEFAULT_GUIDE),
     ...guide,
   },
@@ -55,19 +67,29 @@ const makeItem = ({
     profileId: `${mode}-${unit}`,
     passThreshold: 41,
     starThresholds: [41, 46, 60],
+    // 單字依字元分段評分，其餘題型以整體筆跡評分。
     segmentStrategy: unit === "word" ? "perCharacter" : "whole",
     ...evaluation,
   },
+  // 單字逐字評測需要分段資料；單字以外的題型不建立分段陣列。
   segments:
-    segments ||
-    (unit === "word"
-      ? Array.from(text).map((segment, index) => ({
+    unit === "word"
+      ? Array.from(text, (segment, index) => ({
           id: `${id}-segment-${index + 1}`,
           text: segment,
         }))
-      : undefined),
+      : undefined,
 });
 
+/**
+ * 依照 Unicode 字元碼範圍產生連續字母練習題。
+ * @param {number} start 起始字元碼（包含）。
+ * @param {number} end 結束字元碼（包含）。
+ * @param {string} prefix 題目 ID 使用的前綴。
+ * @param {string} language 題目語言。
+ * @param {(text:string)=>string} hintBuilder 根據字母產生提示文字的函式。
+ * @returns {Object[]} 依序排列的字母題目。
+ */
 const makeLetters = (start, end, prefix, language, hintBuilder) =>
   Array.from({ length: end - start + 1 }, (_, i) => {
     const code = start + i;
@@ -87,28 +109,49 @@ const makeLetters = (start, end, prefix, language, hintBuilder) =>
     });
   });
 
-const makeWordItems = (prefix, words, language, hintBuilder, options = {}) =>
-  words.map((text, index) =>
+/**
+ * 將詞語清單轉換成練習題，並依模式套用提示版面及評分設定。
+ * @param {string} prefix 題目 ID 使用的前綴。
+ * @param {string[]} words 欲建立題目的詞語清單。
+ * @param {string} language 題目語言。
+ * @param {(text:string)=>string} hintBuilder 根據詞語產生提示文字的函式。
+ * @param {Object} options 可選的模式、支援模式、提示樣式及評分覆寫。
+ * @returns {Object[]} 依照輸入詞語順序建立的題目。
+ */
+const makeWordItems = (prefix, words, language, hintBuilder, options = {}) => {
+  // 未指定模式時使用寫字；未指定支援清單時僅支援所選模式。
+  const mode = options.mode || "writing";
+  const supportedModes = options.supportedModes || [mode];
+
+  return words.map((text, index) =>
     makeItem({
       id: `${prefix}-${index + 1}`,
       text,
       hint: hintBuilder(text),
       language,
       unit: "word",
-      mode: options.mode || "writing",
-      supportedModes: options.supportedModes || [options.mode || "writing"],
+      mode,
+      supportedModes,
       guide: {
         maxScale: 0.96,
+        // 英文與中文採不同預設字距，題目可由 options.guide 再覆寫。
         letterSpacing: language === "english" ? 0.02 : 0.08,
         ...options.guide,
       },
       evaluation: {
-        profileId: `${options.mode || "writing"}-word`,
+        profileId: `${mode}-word`,
         ...options.evaluation,
       },
     })
   );
+};
 
+/**
+ * 將中文字清單轉成寫字題目，並建立對應的中文練習提示。
+ * @param {string} prefix 題目 ID 使用的前綴。
+ * @param {string[]} chars 欲建立題目的中文字清單。
+ * @returns {Object[]} 依照輸入文字順序建立的中文題目。
+ */
 const makeZhItems = (prefix, chars) =>
   chars.map((text, index) =>
     makeItem({
@@ -122,9 +165,11 @@ const makeZhItems = (prefix, chars) =>
     })
   );
 
+// 英文字母題依 ASCII 字元碼順序產生大寫與小寫兩個課程。
 const englishUpper = makeLetters(65, 90, "en-upper", "english", (text) => `Trace uppercase "${text}"`);
 const englishLower = makeLetters(97, 122, "en-lower", "english", (text) => `Trace lowercase "${text}"`);
 
+// 英文初級單字清單；每個詞語會依原始順序建立獨立關卡。
 const englishWordsBeginner = makeWordItems(
   "en-wb",
   [
@@ -233,6 +278,7 @@ const englishWordsBeginner = makeWordItems(
   (text) => `Trace word "${text}"`
 );
 
+// 英文中級單字清單；題目格式與初級一致，內容難度由資料清單決定。
 const englishWordsIntermediate = makeWordItems(
   "en-wi",
   [
@@ -341,6 +387,7 @@ const englishWordsIntermediate = makeWordItems(
   (text) => `Trace word "${text}"`
 );
 
+// 英文進階單字清單；題目格式與初級、中級共用同一建構器。
 const englishWordsAdvanced = makeWordItems(
   "en-wa",
   [
@@ -449,6 +496,7 @@ const englishWordsAdvanced = makeWordItems(
   (text) => `Trace word "${text}"`
 );
 
+// 英文自由塗鴉題使用專屬評分門檻及較寬鬆的提示縮放比例。
 const englishDoodles = makeWordItems(
   "en-doodle",
   ["sun", "tree", "house", "fish", "boat", "car", "apple", "cloud", "star", "kite", "frog", "robot"],
@@ -468,6 +516,7 @@ const englishDoodles = makeWordItems(
   }
 );
 
+// 中文分級單字題依難度分組；每筆資料會自動產生提示與關卡 ID。
 const zhBeginner = makeZhItems("zh-b", [
   "一",
   "人",
@@ -811,6 +860,7 @@ const zhWords = makeWordItems(
   }
 );
 
+// 中文主題塗鴉題使用塗鴉模式及專屬評分門檻。
 const zhDoodles = makeWordItems(
   "zh-doodle",
   ["太陽", "山丘", "花朵", "月亮", "笑臉", "小船", "氣球", "房子", "星星", "機器人"],
@@ -831,6 +881,10 @@ const zhDoodles = makeWordItems(
   }
 );
 
+/**
+ * 應用程式使用的課程目錄。
+ * 每個語言包含分類、顯示資訊、解鎖規則及該分類的題目清單。
+ */
 export const curriculum = {
   english: {
     key: "english",

@@ -930,3 +930,35 @@ select {
 .home-page-shell .app {
   width: 100%;
 }
+
+.level-map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.level-node.future {
+  opacity: 0.6;
+}
+
+.level-node.past_locked {
+  border: 1px solid #d32f2f;
+}
+
+.level-node.past_unlocked {
+  border: 1px solid #f9a825;
+}
+
+.level-node.past_done {
+  border: 1px solid #2e7d32;
+}
+
+.level-node.today {
+  border: 2px solid #1e88e5;
+}
+
+.selector-grid-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

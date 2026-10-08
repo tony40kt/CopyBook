@@ -101,17 +101,6 @@ export default function GroupSelector({
                       💳 付費解鎖本課程
                     </button>
 
-                    <button
-                      type="button"
-                      className="primary"
-                      onClick={() =>
-                        onRequestPurchase?.(
-                          "copybook_premium_all"
-                        )
-                      }
-                    >
-                      ⭐ 解鎖全部課程
-                    </button>
                   </div>
                 </div>
               )}
