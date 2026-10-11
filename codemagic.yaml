@@ -5,10 +5,10 @@ workflows:
     instance_type: mac_mini_m2
 
     environment:
-      vars:
-        BUNDLE_ID: "com.tony40kt.copybook"
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
-        XCODE_SCHEME: "App"
+  vars:
+    APP_STORE_CONNECT_PRIVATE_KEY: ${APP_STORE_CONNECT_PRIVATE_KEY}
+    APP_STORE_CONNECT_KEY_IDENTIFIER: ${APP_STORE_CONNECT_KEY_IDENTIFIER}
+    APP_STORE_CONNECT_ISSUER_ID: ${APP_STORE_CONNECT_ISSUER_ID}
       node: 20
       xcode: latest
       cocoapods: default
