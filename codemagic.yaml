@@ -22,7 +22,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.tony40kt.copybook
 
-        code_signing_preference: automatic
+        
 
       # 這裡代表你會讀取在 Codemagic 網頁後台設定的加密環境變數群組
       groups:
