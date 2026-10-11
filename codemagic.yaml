@@ -21,7 +21,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.tony40kt.copybook
-        manage_signing: true # 👈 加入這行，允許 Codemagic 自動去 Apple 幫你建立 Profile
 
       # 這裡代表你會讀取在 Codemagic 網頁後台設定的加密環境變數群組
       groups:
