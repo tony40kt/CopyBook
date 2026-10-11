@@ -6,9 +6,14 @@ workflows:
 
     environment:
   vars:
-    APP_STORE_CONNECT_PRIVATE_KEY: ${APP_STORE_CONNECT_PRIVATE_KEY}
-    APP_STORE_CONNECT_KEY_IDENTIFIER: ${APP_STORE_CONNECT_KEY_IDENTIFIER}
-    APP_STORE_CONNECT_ISSUER_ID: ${APP_STORE_CONNECT_ISSUER_ID}
+    APP_STORE_CONNECT_PRIVATE_KEY: ${-----BEGIN PRIVATE KEY-----
+                                    MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgmLzDbfrAS+szNsRd
+                                    t+y6js/cAVv+h9m0LSsMMECGqo2gCgYIKoZIzj0DAQehRANCAAQSzVvdadgfEcUl
+                                    rRkz+MYH2v6082liHw+ltYadptrjf8ZXWR41nlNb2iBgwJBGe1M7gGu5A3cqpJWo
+                                    FGXC5ONi
+                                    -----END PRIVATE KEY-----}
+    APP_STORE_CONNECT_KEY_IDENTIFIER: ${5T2L6U7S6M}
+    APP_STORE_CONNECT_ISSUER_ID: ${32fa399f-840c-4ffc-a409-11eb93653bf5}
       node: 20
       xcode: latest
       cocoapods: default
