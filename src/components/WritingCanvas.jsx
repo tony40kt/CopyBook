@@ -17,6 +17,7 @@ const DEFAULT_CANVAS = {
   cssHeight: 200,
   dpr: 1,
 };
+const SHANTELL_FONT_DESCRIPTOR = '500 48px "Shantell Sans"';
 
 function createStroke(point, brushSize, brushColor, mode, pointerType) {
   return {
@@ -69,7 +70,10 @@ const WritingCanvas = forwardRef(function WritingCanvas(
   const canvasRef = useRef(null);
   const strokesRef = useRef([]);
   const activeStrokeRef = useRef(null);
+  const guideFontReadyRef = useRef(false);
   const [canvasSize, setCanvasSize] = useState(DEFAULT_CANVAS);
+  const [guideFontReady, setGuideFontReady] = useState(false);
+  const [guideFontError, setGuideFontError] = useState(false);
   const [, setStrokeVersion] = useState(0);
 
   const effectiveItem = useMemo(() => {
@@ -107,7 +111,8 @@ const WritingCanvas = forwardRef(function WritingCanvas(
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = getCtx();
-    if (!canvas || !ctx) return;
+    // 不繪製任何提示底字或筆跡，直到本地字型已由 FontFaceSet 確認載入。
+    if (!canvas || !ctx || !guideFontReadyRef.current) return;
 
     const { cssWidth, cssHeight, dpr } = canvasSize;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -145,7 +150,6 @@ const WritingCanvas = forwardRef(function WritingCanvas(
         ctx,
         text: effectiveItem.text,
         guide: effectiveItem.guide,
-        mode: practiceMode,
         width: cssWidth,
         height: cssHeight,
       });
@@ -248,6 +252,7 @@ const WritingCanvas = forwardRef(function WritingCanvas(
   const startDrawing = useCallback(
     (event) => {
       event.preventDefault();
+      if (!guideFontReadyRef.current) return;
       const canvas = canvasRef.current;
       const ctx = getCtx();
       const point = getPoint(event);
@@ -319,9 +324,49 @@ const WritingCanvas = forwardRef(function WritingCanvas(
     return () => window.removeEventListener("resize", onResize);
   }, [resizeCanvas]);
 
+  /**
+   * 等待 CSS 宣告的本地 Shantell Sans 字型完成載入，再允許畫布繪製與書寫。
+   * 若字型缺失或載入失敗，維持畫布停用並顯示錯誤提示，避免悄悄降級。
+   */
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadGuideFont = async () => {
+      try {
+        if (!document.fonts) {
+          throw new Error("此環境不支援 FontFaceSet，無法確認提示字型已載入。");
+        }
+
+        const loadedFaces = await document.fonts.load(
+          SHANTELL_FONT_DESCRIPTOR,
+          "Aa"
+        );
+        await document.fonts.ready;
+
+        if (!loadedFaces.length) {
+          throw new Error("找不到已載入的 Shantell Sans 本地字型。");
+        }
+
+        if (isMounted) {
+          guideFontReadyRef.current = true;
+          setGuideFontReady(true);
+          setGuideFontError(false);
+        }
+      } catch (error) {
+        console.error("[WritingCanvas] Shantell Sans 字型載入失敗：", error);
+        if (isMounted) setGuideFontError(true);
+      }
+    };
+
+    void loadGuideFont();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     redraw();
-  }, [redraw]);
+  }, [guideFontReady, redraw]);
 
   useEffect(() => {
     strokesRef.current = [];
@@ -331,10 +376,23 @@ const WritingCanvas = forwardRef(function WritingCanvas(
   }, [clearSignal, effectiveItem?.id, practiceMode, redraw]);
 
   return (
-    <div className="canvas-wrapper" ref={wrapperRef}>
+    <div
+      className="canvas-wrapper"
+      ref={wrapperRef}
+      data-language={item?.language}
+      aria-busy={!guideFontReady && !guideFontError}
+    >
+      {!guideFontReady && (
+        <p className="canvas-font-status" role="status">
+          {guideFontError
+            ? "本地手寫字型載入失敗，畫布暫時無法使用。"
+            : "正在載入本地手寫字型……"}
+        </p>
+      )}
       <canvas
         ref={canvasRef}
         className="writing-canvas"
+        style={{ pointerEvents: guideFontReady ? "auto" : "none" }}
         onPointerDown={startDrawing}
         onPointerMove={moveDrawing}
         onPointerUp={stopDrawing}
@@ -344,5 +402,7 @@ const WritingCanvas = forwardRef(function WritingCanvas(
     </div>
   );
 });
+
+
 
 export default WritingCanvas;

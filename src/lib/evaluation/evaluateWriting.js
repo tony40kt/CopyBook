@@ -125,7 +125,6 @@ export function evaluateWriting({
     ctx: guideCtx,
     text: item?.text || "",
     guide: item?.guide,
-    mode: "writing",
     width,
     height,
   });

@@ -1,33 +1,3 @@
-workflows:
-  ios-capacitor-release:
-    name: iOS Capacitor Release
-    max_build_duration: 120
-    instance_type: mac_mini_m2
-
-    environment:
-      node: 20
-      xcode: latest
-      cocoapods: default
-      
-      vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
-        XCODE_SCHEME: "App"
-
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.tony40kt.copybook
-
-      groups:
-        - app_store_credentials 
-
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
-          source: true
-
     scripts:
       - name: Install dependencies
         script: |
@@ -37,10 +7,20 @@ workflows:
         script: |
           npm run build
 
+      # 修正：1. 明確確保安裝了 @capacitor/ios 套件
+      #      2. 移除 || true，如果加失敗就讓它在這裡報錯，我們才能看清原因
       - name: Ensure iOS platform exists
         script: |
-          npx cap add ios || true
+          # 檢查本地是否有 ios 資料夾，如果沒有就安裝套件並新增平台
+          if [ ! -d "ios" ]; then
+            echo "iOS platform folder not found. Installing @capacitor/ios and adding platform..."
+            npm install @capacitor/ios
+            npx cap add ios
+          else
+            echo "iOS platform folder already exists."
+          fi
 
+      # 修正：現在平台百分之百存在了，進行同步才不會報錯
       - name: Sync Capacitor iOS
         script: |
           npx cap sync ios
@@ -50,27 +30,17 @@ workflows:
           cd ios/App
           pod install
 
-      - name: Set up code signing
+      - name: Set up code signing (API-driven)
         script: |
-          xcode-project use-profiles
+          app-store-connect fetch-signing-files "$bundle_identifier" \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --create
 
       - name: Build IPA
         script: |
-          # 修正：Capacitor 的證書模式在 CLI 中建议加上 --mode release
           xcode-project build-ipa \
             --workspace "$CM_BUILD_DIR/$XCODE_WORKSPACE" \
             --scheme "$XCODE_SCHEME" \
             --mode release
-
-    artifacts:
-      # 修正：Codemagic 預設的 IPA 產出路徑是在原 Xcode 專案目錄下，而非根目錄的 build/
-      - ios/App/build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
-        submit_to_app_store: false

@@ -13,7 +13,7 @@ const DEFAULT_GUIDE = {
 /** 英文字母與英文單字專用字型，其餘提示樣式沿用預設值。 */
 const ENGLISH_GUIDE = {
   ...DEFAULT_GUIDE,
-  fontFamily: '"Avenir Next", "Segoe UI", "Noto Sans TC", sans-serif',
+  fontFamily: '"Shantell Sans", system-ui, sans-serif',
 };
 
 /**

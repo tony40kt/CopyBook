@@ -1165,12 +1165,10 @@ export default function App() {
             <LetterCard
               title="Daily Challenge"
               text={daily.text}
-              hint={daily.hint}
               index={1}
               total={1}
               unit={daily.unit}
               language={daily.language}
-              practiceMode="writing"
               toleranceLabel={toleranceLabel}
             />
 
@@ -1255,12 +1253,10 @@ export default function App() {
           <LetterCard
             title={groupTitle}
             text={current.text}
-            hint={current.hint}
             index={currentIndex}
             total={items.length}
             unit={current.unit}
             language={current.language}
-            practiceMode="writing"
             toleranceLabel={toleranceLabel}
           />
 
