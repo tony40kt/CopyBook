@@ -5,15 +5,10 @@ workflows:
     instance_type: mac_mini_m2
 
     environment:
-      # 修正：1. 這裡必須縮排在 environment 下方。 
-      #      2. 建議直接在 Codemagic 網頁後台的 Environment groups (app_store_credentials) 
-      #         內建立變數，不要把私鑰明文寫在 YAML 檔中，非常危險。
-      #      3. 底下的 node, xcode, cocoapods 縮排已修正。
       node: 20
       xcode: latest
       cocoapods: default
       
-      # 修正：定義 Capacitor 預設的 Xcode 路徑變數，否則下方的 xcode-project 指令會找不到專案
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
@@ -22,9 +17,6 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.tony40kt.copybook
 
-        
-
-      # 這裡代表你會讀取在 Codemagic 網頁後台設定的加密環境變數群組
       groups:
         - app_store_credentials 
 
@@ -64,18 +56,19 @@ workflows:
 
       - name: Build IPA
         script: |
-          # 修正：因為路徑都在 ios/App 底下，直接指向變數即可
+          # 修正：Capacitor 的證書模式在 CLI 中建议加上 --mode release
           xcode-project build-ipa \
             --workspace "$CM_BUILD_DIR/$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
+            --scheme "$XCODE_SCHEME" \
+            --mode release
 
     artifacts:
-      - build/ios/ipa/*.ipa
+      # 修正：Codemagic 預設的 IPA 產出路徑是在原 Xcode 專案目錄下，而非根目錄的 build/
+      - ios/App/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
 
     publishing:
       app_store_connect:
-        # 修正：如果你在環境變數群組中建立好變數，這裡的變數名稱要與後台完全一致
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
