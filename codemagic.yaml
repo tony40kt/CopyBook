@@ -41,6 +41,13 @@ workflows:
         script: |
           npx cap add ios || true
 
+      - name: Raise iOS deployment target
+        script: |
+          sed -i '' "s/platform :ios, '11.0'/platform :ios, '13.0'/g" ios/App/Podfile || true
+          sed -i '' "s/platform :ios, '12.0'/platform :ios, '13.0'/g" ios/App/Podfile || true
+          sed -i '' "s/platform :ios, '13.0'/platform :ios, '13.0'/g" ios/App/Podfile || true
+          cat ios/App/Podfile
+
       - name: Sync Capacitor iOS
         script: |
           npx cap sync ios
