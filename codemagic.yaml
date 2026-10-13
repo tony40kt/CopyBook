@@ -63,11 +63,12 @@ workflows:
 
       - name: Build IPA
         script: |
-          # 修正：Capacitor 的證書模式在 CLI 中建议加上 --mode release
+          # 已修正：將不支援的 --mode release 改為 --config Release
           xcode-project build-ipa \
             --workspace "$CM_BUILD_DIR/$XCODE_WORKSPACE" \
             --scheme "$XCODE_SCHEME" \
-            --mode release
+            --config Release
+
 
     artifacts:
       # 修正：Codemagic 預設的 IPA 產出路徑是在原 Xcode 專案目錄下，而非根目錄的 build/
