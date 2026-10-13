@@ -43,9 +43,20 @@ workflows:
 
       - name: Raise iOS deployment target
         script: |
-          sed -i '' "s/platform :ios, '11.0'/platform :ios, '13.0'/g" ios/App/Podfile || true
-          sed -i '' "s/platform :ios, '12.0'/platform :ios, '13.0'/g" ios/App/Podfile || true
-          sed -i '' "s/platform :ios, '13.0'/platform :ios, '13.0'/g" ios/App/Podfile || true
+          # 1. 提升 Podfile 的最低支援版本到 15.0
+          sed -i '' "s/platform :ios, '11.0'/platform :ios, '15.0'/g" ios/App/Podfile || true
+          sed -i '' "s/platform :ios, '12.0'/platform :ios, '15.0'/g" ios/App/Podfile || true
+          sed -i '' "s/platform :ios, '13.0'/platform :ios, '15.0'/g" ios/App/Podfile || true
+          sed -i '' "s/platform :ios, '14.0'/platform :ios, '15.0'/g" ios/App/Podfile || true
+          
+          # 2. 強制修改主項目 (.xcodeproj) 內的 IPHONEOS_DEPLOYMENT_TARGET 
+          # 使用 perl 全局替換專案檔中的 14.0 支援版本為 15.0
+          perl -pi -e 's/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+          perl -pi -e 's/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+          perl -pi -e 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+          perl -pi -e 's/IPHONEOS_DEPLOYMENT_TARGET = 11.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+
+          # 檢查 Podfile 確保修改成功
           cat ios/App/Podfile
 
       - name: Sync Capacitor iOS
