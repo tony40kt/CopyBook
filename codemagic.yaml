@@ -82,9 +82,9 @@ workflows:
 
 
     artifacts:
-      # 修正：Codemagic 預設的 IPA 產出路徑是在原 Xcode 專案目錄下，而非根目錄的 build/
-      - ios/App/build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
+      # 真正正確的 Codemagic 預設產出路徑（根目錄）
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebook_logs/*.log  # 或者保留 /tmp/xcodebuild_logs/*.log
 
     publishing:
       app_store_connect:
