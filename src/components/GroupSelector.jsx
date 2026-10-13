@@ -92,15 +92,20 @@ export default function GroupSelector({
                     <button
                       type="button"
                       className="accent"
-                      onClick={() =>
-                        onRequestPurchase?.(
-                          `copybook_course_${group.id}`
-                        )
-                      }
+                      onClick={() => onRequestPurchase?.
+                  (`copybook_course_${group.id}`)}
                     >
                       💳 付費解鎖本課程
                     </button>
 
+                    <button
+                      type="button"
+                      className="accent secondary-buy-all"
+                      onClick={() => onRequestPurchase?.
+                  ("copybook_premium_all")}
+                    >
+                      ⭐ 付費解鎖全課程
+                    </button>
                   </div>
                 </div>
               )}

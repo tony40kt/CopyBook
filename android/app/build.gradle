@@ -9,8 +9,8 @@ android {
         applicationId "com.tony40kt.copybook"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 8
-        versionName "2.0.1"
+        versionCode 10
+        versionName "2.1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         
         aaptOptions {

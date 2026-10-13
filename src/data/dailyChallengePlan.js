@@ -32,19 +32,26 @@ const DEFAULT_CHALLENGE = {
  * @param {string} csvUrl - CSV 檔案的 HTTP 讀取路徑
  * @returns {Promise<void>} 異步操作的 Promise 物件
  */
-export async function initChallengePool(csvUrl = "/challenges.csv") {
+export async function initChallengePool(csvUrl = "public/challenges.csv") {
   try {
-    const response = await fetch(csvUrl);
+    // 🔥 關鍵修正：動態結合當前網域
+    // 在網頁 dev 會是 http://localhost:5173/challenges.csv
+    // 在 iOS 實機上會是 capacitor://localhost/challenges.csv
+    // 在 Android 實機上會是 http://localhost/challenges.csv
+    const finalUrl = csvUrl.startsWith('http') || csvUrl.startsWith('capacitor')
+      ? csvUrl
+      : `${window.location.origin}/${csvUrl.replace(/^\//, '')}`;
+
+    console.log(`[CopyBook] 正在從此路徑讀取 CSV: ${finalUrl}`);
+
+    const response = await fetch(finalUrl);
     if (!response.ok) throw new Error(`無法讀取 CSV 檔案，伺服器回應狀態碼: ${response.status}`);
     
     const csvText = await response.text();
     
-    // 依行拆分字串，相容 Windows (\(\r\\)n) 與 Linux/Mac (\n) 的換行符號，並過濾掉空白行
+    // ... 後續的 CSV split 與 globalChallengePool 解析邏輯不變 ...
     const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
-    
-    // 解析每行資料並轉換為結構化物件陣列
     globalChallengePool = lines.map(line => {
-      // 簡易 CSV 逗號分割（若欄位內容包含中文逗號，此處安全；若包含英文逗號，建議改用正規表示式）
       const [title, text, hint] = line.split(",");
       return {
         title: title?.trim() || "無標題",
@@ -56,7 +63,7 @@ export async function initChallengePool(csvUrl = "/challenges.csv") {
     console.log(`[CopyBook] 成功載入題目庫！共計 ${globalChallengePool.length} 筆每日題目。`);
   } catch (error) {
     console.error("[CopyBook] 初始化題目庫失敗，系統將自動啟用預設題目後備機制:", error);
-    globalChallengePool = []; // 發生錯誤時確保清空，改走防錯後備機制
+    globalChallengePool = [];
   }
 }
 
